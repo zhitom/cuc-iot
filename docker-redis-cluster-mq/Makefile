@@ -3,7 +3,7 @@
 #下面的根据本机情况进行修改
 REDISVOLUME=/redis-cluster-mq
 VOLUMENAME=/d/opensoft/dockers/cuc-iot-dockers/docker-redis-cluster-mq/redis-cluster-volume
-IMGNAME=cuc-iot/redis-cluster-mq:3.2.7
+IMGNAME=zhitom/cuc-iot-redis-cluster-mq:3.2.7
 CONTAINERNAME=redis-cluster-mq
 CONTAINERID?=1
 DOCKCMD=docker

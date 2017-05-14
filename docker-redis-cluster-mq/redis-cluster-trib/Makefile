@@ -1,6 +1,6 @@
 #CID_FILE = /tmp/grokzen-redis-cluster.cid
 #CID =`cat $(CID_FILE)`
-IMGNAME=cuc-iot/redis-cluster-trib-mq:3.2.7
+IMGNAME=zhitom/cuc-iot-redis-cluster-trib-mq:3.2.7
 CONTAINERNAME=redis-cluster-trib-mq
 CNAME=redis-cluster-mq
 #多个的时候用空格分割
