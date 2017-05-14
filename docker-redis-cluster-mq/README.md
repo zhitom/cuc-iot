@@ -1,6 +1,9 @@
 # redis-cluster-mq
 
-redis-cluster-mq是在https://hub.docker.com/r/grokzen/redis-cluster/基础之上创建的，用于一个基于redis的队列缓存集群，Makefile和Dockerfile用于创建该镜像
+redis-cluster-mq是在[grokzen/redis-cluster](https://hub.docker.com/r/grokzen/redis-cluster/ "https://hub.docker.com/r/grokzen/redis-cluster/")基础之上创建的，用于一个基于redis的队列缓存集群，Makefile和Dockerfile用于创建该镜像
+
+- zhitom/cuc-iot-redis-cluster-mq is deploy redis 6 instances=3M+3S!(实例，6个实例，3主+3备)
+- zhitom/cuc-iot-redis-cluster-trib-mq revoks redis-trib.rb for create redis-cluster!(仅调用集群创建命令，需单独下载镜像)
 
 #目录文件说明
 
@@ -49,19 +52,29 @@ And to run the container use:
 
     # start all redis instance
     make run
-    # start redis cluster
-    cd redis-cluster-trib && ./genallports.sh
+    # create redis cluster，if it is restarted,don't need to execute this:
+    cd redis-cluster-trib && make run
 
     # and top stop the container run
     make stop
     # and restart the container
     make start
     # and start with bash
-    make bash 
+    make bash
 
 To connect to your cluster you can use the redis-cli tool:
 
     make cli
 
+To shutdown cluster
+
+    # first save cluster infomations
+     172.17.0.2:5000> CLUSTER SAVECONFIG
+    # then stop container
+     make stop
+
+To Restart cluster
+    
+    make run
 
 
