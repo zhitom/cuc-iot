@@ -1,5 +1,12 @@
 #!/bin/sh
 #set -x
+REDIS_SELF()
+{
+    redis-cli $1 <<EOF
+$2
+quit
+EOF
+}
 if [ "$1" = 'redis-cluster-mq' ]; then
     #获取整个集群的实例信息，可能是跨容器的集群
     REPNUM=`cat /redis-cluster-mq/conf/redis-cluster.replicas`
@@ -64,7 +71,13 @@ elif [ "$1" = 'append' ]; then
         exit 100
     fi
     echo ${2} >> /redis-cluster-mq/conf/redis-cluster.ports.all
-else #clear
+elif [ "$1" = 'save' ]; then
+    FIRSTPORT=`cat ./docker-data/redis-cluster.ports.all|head -1`
+    IP=`echo $FIRSTPORT|awk -F: '{print $1}'`
+    PORT=`echo $FIRSTPORT|awk -F: '{print $2}'`
+    REDIS_SELF "-c -h ${IP} -p ${PORT}" "CLUSTER SAVECONFIG"
+    echo ${2} >> /redis-cluster-mq/conf/redis-cluster.ports.all
+else #initialize 
   echo "Clear /redis-cluster-mq/conf/redis-cluster.ports.all"
   cp /dev/null /redis-cluster-mq/conf/redis-cluster.ports.all
   tail -f /var/log/bootstrap.log #容器不退出

@@ -6,6 +6,34 @@
 
 - container deploys redis 6 instances=3M+3S!(实例，6个实例，3主+3备)。
 
+
+# 版本
+
+- latest == 3.2.7
+
+# Windows7 or Windows10
+
+由于windows下面使用了boot2docker.iso,所以需先打开VirtualBox，设置一下此虚拟机：
+
+- 设置目录共享redis-cluster-volume为redis-cluster-volume，路径为/redis-cluster-volume
+- 本机是指该虚拟机，非windows系统，所以
+    - 本地IP为的虚拟机IP，一般是192.168.99.100，具体需看VirtualBox的配置
+    - 端口映射到的是虚拟机上面的端口
+    - ssh登录：user=docker，password=tcuser
+    - 由于是集群，查询key的时候会切换ip:port，所以要将容器的网络作为host模式启动
+        - 此选项在Makefile.HOSTOPT设置为‘--net=host’，如果本机为linux的就设置为空即可
+
+# 持久化
+
+根据windows或linux的不同，需修改Makefile.WINVOLUMEPATH和VOLUMENAME路径信息：
+
+- windows
+    - WINVOLUMEPATH：mingw下的路径，使mingw下的make命令可以访问
+    - VOLUMENAME：为虚拟机里边的路径，需要先在VirtualBox加载目录
+- Linux
+    - WINVOLUMEPATH：持久化用的目录路径
+    - VOLUMENAME：等同 WINVOLUMEPATH
+
 # 目录文件说明
 
 - Makefile和Dockerfile用于创建该镜像
@@ -35,10 +63,6 @@ make的目标如下：
     - clean     delete container
     - distclean delete image
     - cluster   	create or check cluster,only once!
-
-# 版本
-
-- latest == 3.2.7
 
 # 操作方法
 
@@ -97,14 +121,4 @@ To need more redis instances
     # client for another
     redis-cli -c -h docker-ip -p docker-port
 
-# Windows 7
-
-由于windows下面使用了boot2docker.iso,所以需先打开VirtualBox，设置一下此虚拟机：
-
-    - 设置目录共享redis-cluster-volume为redis-cluster-volume，路径为/redis-cluster-volume
-    - 本机是指该虚拟机，非windows系统，所以
-        - 本地IP为的虚拟机IP，一般是192.168.99.100，具体需看VirtualBox的配置
-        - 端口映射到的是虚拟机上面的端口
-        - ssh登录：user=docker，password=tcuser
-        - 由于是集群，查询key的时候会切换ip:port，所以需要将虚拟机的网络切换成桥接模式
 

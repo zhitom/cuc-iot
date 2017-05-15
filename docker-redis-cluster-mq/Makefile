@@ -7,6 +7,8 @@ REDISVOLUME=/redis-cluster-mq
 VOLUMENAME=/redis-cluster-volume
 #windows下面的mingw下的路径，使mingw下的make命令可以访问，如果是linux，将WINVOLUMEPATH和VOLUMENAME设置为一致即可
 WINVOLUMEPATH=/d/weiyun/mygit/cuc-iot/docker-redis-cluster-mq/redis-cluster-volume
+#window下，建议使用host模式，支持双向访问，否则只能容器访问外面IP，不能外面访问容器IP
+HOSTOPT=--net=host
 IMGNAME=zhitom/cuc-iot-redis-cluster-mq:latest
 CONTAINERNAME=redis-cluster-mq
 CONTAINERID?=1
@@ -29,8 +31,8 @@ help:
 rebuild:
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 
-runbak:
-	$(DOCKCMD) run -d $(shell for p in `$(DOCKCMD) image inspect --format='{{range $$p, $$conf := .Config.ExposedPorts}} {{$$p}} {{end}}' $(IMGNAME)|sed 's/\/tcp//g'`;do \
+run:
+	$(DOCKCMD) run $(HOSTOPT) -d $(shell for p in `$(DOCKCMD) image inspect --format='{{range $$p, $$conf := .Config.ExposedPorts}} {{$$p}} {{end}}' $(IMGNAME)|sed 's/\/tcp//g'`;do \
 					CLIENTPORT="$${CLIENTPORT} -p $$p:$$p"; \
 					done&&echo $${CLIENTPORT}) \
 					-v $(VOLUMENAME)/data:$(REDISVOLUME)/data \
@@ -39,15 +41,17 @@ runbak:
 					-h $(CONTAINERNAME).$(CONTAINERID) $(IMGNAME)
 	$(DOCKCMD) exec $(CONTAINERNAME).$(CONTAINERID) ifconfig
 	$(DOCKCMD) logs $(CONTAINERNAME).$(CONTAINERID)
+	$(DOCKCMD) port $(CONTAINERNAME).$(CONTAINERID)
 
-run:
-	$(DOCKCMD) run -d \
+runbak:
+	$(DOCKCMD) run $(HOSTOPT) -d \
 					-v $(VOLUMENAME)/data:$(REDISVOLUME)/data \
 					-v $(VOLUMENAME)/log:$(REDISVOLUME)/log \
 					--name $(CONTAINERNAME).$(CONTAINERID) \
 					-h $(CONTAINERNAME).$(CONTAINERID) $(IMGNAME)
 	$(DOCKCMD) exec $(CONTAINERNAME).$(CONTAINERID) ifconfig
 	$(DOCKCMD) logs $(CONTAINERNAME).$(CONTAINERID)
+	$(DOCKCMD) port $(CONTAINERNAME).$(CONTAINERID)
 
 start:
 	$(DOCKCMD) start $(CONTAINERNAME).$(CONTAINERID)
@@ -55,6 +59,8 @@ start:
 	$(DOCKCMD) logs $(CONTAINERNAME).$(CONTAINERID)
 
 stop:
+	$(DOCKCMD) run -d --rm --name $(CONTAINERNAME).cluster -h $(CONTAINERNAME).cluster --entrypoint /redis-cluster-mq/redis-cluster-trib.sh $(IMGNAME) save
+	$(DOCKCMD) wait $(CONTAINERNAME).cluster
 	$(DOCKCMD) stop $(CONTAINERNAME).$(CONTAINERID)
 	$(DOCKCMD) wait $(CONTAINERNAME).$(CONTAINERID)
 
@@ -80,7 +86,7 @@ clusterinfo:
 
 cluster:clusterinfo
 	@echo "run new container for redis-cluster's creating..."
-	$(DOCKCMD) run -d --rm --name $(CONTAINERNAME).cluster -h $(CONTAINERNAME).cluster --entrypoint /redis-cluster-mq/redis-cluster-trib.sh $(IMGNAME) clear
+	$(DOCKCMD) run -d --rm --name $(CONTAINERNAME).cluster -h $(CONTAINERNAME).cluster --entrypoint /redis-cluster-mq/redis-cluster-trib.sh $(IMGNAME) initialize
 	@for cid in `cat ./docker-data/redis-cluster.ports.all`; \
 	do \
 	echo instance ${CONTAINERNAME}.$$cid: /redis-cluster-mq/redis-cluster-trib.sh append $$cid "..." ; \

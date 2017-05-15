@@ -23,11 +23,20 @@ if [ "$1" = 'redis-cluster-mq' ]; then
     sleep 3
 
     #记录当前启动的redis实例信息
-    IP=`ifconfig | grep "inet addr:17" | cut -f2 -d ":" | cut -f1 -d " "`
-    cp /dev/null /redis-cluster-mq/conf/redis-cluster.ports
-    for port in ${PORTS}; do
-      echo ${IP}:${port} >> /redis-cluster-mq/conf/redis-cluster.ports
-    done
+    docker0=`ifconfig|grep ^docker`
+    if [ "x${docker0}" != "x" ]; then #host
+      IP=`ifconfig | grep "inet addr:19" | cut -f2 -d ":" | cut -f1 -d " "`
+      cp /dev/null /redis-cluster-mq/conf/redis-cluster.ports
+      for port in ${PORTS}; do
+        echo ${IP}:${port} >> /redis-cluster-mq/conf/redis-cluster.ports
+      done
+    else #bridger
+      IP=`ifconfig | grep "inet addr:17" | cut -f2 -d ":" | cut -f1 -d " "`
+      cp /dev/null /redis-cluster-mq/conf/redis-cluster.ports
+      for port in ${PORTS}; do
+        echo ${IP}:${port} >> /redis-cluster-mq/conf/redis-cluster.ports
+      done
+    fi
     #cp -f /dev/null /redis-cluster-mq/log/supervisor_redis_1.log
     tail -f /redis-cluster-mq/log/supervisor_redis*.log
 else
