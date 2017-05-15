@@ -20,7 +20,7 @@ help:
 rebuild:
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 
-copy:
+clusterinfo:
 	-cp /dev/null ./redis-cluster.ports.all
 	@for cid in `echo $(CIDLIST)`; \
 	do \
@@ -28,7 +28,7 @@ copy:
 	$(DOCKCMD) exec ${CNAME}.$$cid cat /redis-cluster-mq/conf/redis-cluster.ports >> ./redis-cluster.ports.all ; \
 	done
 
-run:copy
+run:clusterinfo
 	$(DOCKCMD) run -d --rm --name $(CONTAINERNAME) -h $(CONTAINERNAME) $(IMGNAME)
 
 start:run
