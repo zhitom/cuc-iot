@@ -23,19 +23,25 @@ RUN mkdir -p /redis-cluster-mq/conf
 #COPY ./docker-data/redis.tmpl                  /redis-cluster-mq/conf/redis.tmpl
 COPY ./docker-data/redis-cluster.tmpl           /redis-cluster-mq/conf/redis-cluster.tmpl
 COPY ./docker-data/redis-cluster-common.conf    /redis-cluster-mq/conf/redis-cluster-common.conf
-COPY ./docker-data/redis-cli.sh                 /redis-cli.sh
+
+#redis集群配置文件
+COPY ./docker-data/redis-cluster.ports.all      /redis-cluster-mq/conf/redis-cluster.ports.all
+COPY ./docker-data/redis-cluster.replicas       /redis-cluster-mq/conf/redis-cluster.replicas
 
 # Add supervisord configuration，用于监控进程状态
 COPY ./docker-data/supervisord.conf             /etc/supervisor/conf.d/supervisord.conf
 
-# Add startup script，用于启动集群
+# Add startup script，1.输出实例信息；2.客户端脚本；3.用于创建集群（只须调用一次）
 COPY ./docker-data/docker-entrypoint.sh         /redis-cluster-mq/docker-entrypoint.sh
+COPY ./docker-data/redis-cli.sh                 /redis-cli.sh
+COPY ./docker-data/redis-cluster-trib.sh        /redis-cluster-mq/redis-cluster-trib.sh
 
 ##########################################
 #增加可执行权限
 ##########################################
 RUN chmod 755 /redis-cluster-mq/docker-entrypoint.sh
 RUN chmod 755 /redis-cli.sh
+RUN chmod 755 /redis-cluster-mq/redis-cluster-trib.sh
 
 ##########################################
 #暴露端口给宿主机
