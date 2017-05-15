@@ -1,6 +1,6 @@
 # redis-cluster-mq
 
-#概述
+# 概述
 
  redis-cluster-mq是在[https://hub.docker.com/r/grokzen/redis-cluster/](https://hub.docker.com/r/grokzen/redis-cluster/)基础之上创建的，用于一个基于redis的队列缓存集群，因此此redis集群仅考虑1个副本且关闭redis持久化功能。
  
@@ -11,7 +11,7 @@ cuc-iot-redis-cluster-mq ： cuc-iot-redis-cluster-trib-mq = n  ：1
 - [zhitom/cuc-iot-redis-cluster-mq](https://hub.docker.com/r/zhitom/cuc-iot-redis-cluster-mq/ "https://hub.docker.com/r/zhitom/cuc-iot-redis-cluster-mq/") is deploy redis 6 instances=3M+3S!(实例，6个实例，3主+3备)，可以无限制扩展。
 - [zhitom/cuc-iot-redis-cluster-trib-mq](https://hub.docker.com/r/zhitom/cuc-iot-redis-cluster-trib-mq/ "https://hub.docker.com/r/zhitom/cuc-iot-redis-cluster-trib-mq/") revoks redis-trib.rb for create redis-cluster!(仅调用集群创建命令，执行后即销毁，需单独下载镜像，如果宿主机自带redis-trib.rb，可以不用下载此镜像)
 
-#目录文件说明
+# 目录文件说明
 
 - Makefile和Dockerfile用于创建该镜像
 - docker-data：源码目录，用于创建该镜像
@@ -27,7 +27,7 @@ cuc-iot-redis-cluster-mq ： cuc-iot-redis-cluster-trib-mq = n  ：1
   - redis-cluster-trib.sh：集群启动脚本
 - redis-cluster-volume：为容器共享的文件夹，子目录为log和data，存放日志和数据文件
 
-#操作统一
+# 操作统一
 
 为简化和统一操作，使用make命令来进行了封装：
 
@@ -50,9 +50,9 @@ make的目标如下：
 
 To build your own image run,一般执行一次即可:
 
-    #build redis instance image，default imagename is 
+    # build redis instance image，default imagename is 
     make rebuild
-    #build redis cluster image
+    # build redis cluster image
     cd redis-cluster-trib && make build
 
 And to start cluster use:
