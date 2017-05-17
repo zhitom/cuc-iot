@@ -23,6 +23,7 @@
     - ssh登录：user=docker，password=tcuser
     - 由于是集群，查询key的时候会切换ip:port，所以要将容器的网络作为host模式启动
         - 此选项在Makefile.HOSTOPT设置为‘--net=host’，如果本机为linux的就设置为空即可
+        - 否则只能在容器里边使用客户端查询
 
 # 持久化
 
@@ -38,18 +39,20 @@
 - Makefile和Dockerfile用于创建该镜像
 - rebuild-data：源码目录，用于创建该镜像
   - supervisord.conf：实例进程监控主配置文件
+  - common.sh：公共函数
+  - docker-entrypoint.sh：启动redis实例
+  - redis-cli.sh：集群客户端封装，可选
+  - redis-cluster-trib.sh：集群创建脚本
+  - getport.sh：获取容器对应的端口信息，此信息在容器启动的时候输出
 - redis-cluster-volume：为容器持久化和共享的文件夹
-  - bin：存放可执行脚本
-      - common.sh：公共函数
-      - docker-entrypoint.sh：启动redis实例
-      - redis-cli.sh：集群客户端封装，可选
-      - redis-cluster-trib.sh：集群创建脚本
+  - bin：存放可执行脚本，同rebuild-data下面的*.sh,创建镜像时makefile里边自动同步
   - conf：存放配置及模版文件
       - redis-cluster.ports.all：所有redis实例的port列表
+      - redis-cluster.ports.*.*：redis实例的按主机分布的port列表
       - redis-cluster.replicas：集群的副本数，不含主节点，当前配置为1
       - redis-cluster.tmpl： 集群个性化配置模版
       - redis-cluster-common.conf：集群公共部分配置
-      - supervisor-allredis.conf：实例进程监控配置，如自动启动
+      - supervisor-allredis*.conf：实例进程监控配置，如自动启动
   - data：存放redis持久化的文件
       - redis-cluster.ip.port.all：所有redis实例的IP和PORT列表，makefile自动维护，从${port}/redis-cluster.ip.port中合并
       - ${port}/redis-cluster.ip.port:容器启动的时候自动产生，汇报IP和PORT信息
@@ -73,8 +76,10 @@ make的目标如下：
     - stop      stop container
     - bash      start bash with current container
     - cli       start redis-cli using first redis-ip:port instance container
+    - localcli  start redis-cli in localhost
     - clean     delete container
-    - cleandata delete all data and logs
+    - cleandata delete all data
+    - cleanlog  delete all logs
     - distclean delete image
     - cluster   	create or check cluster,only once!
 
@@ -82,7 +87,7 @@ make的个性化选项：
 
     - REDISTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule
     - CIDLIST=1(默认)     容器实例编号，同一个REDISTYPE不重复即可
-    - RUNOPT=--net=host(默认) 该选择主要针对windows，linux请设置为空
+    - RUNOPT=--net=host(默认) 该选择主要方便容器和宿主机双向通信，因为redis客户端集群场景下会切换ip，否则只能在容器里边使用客户端了。
 
 # 操作方法
 
@@ -113,7 +118,10 @@ And to start cluster use:
 
 To connect to your cluster you can use the redis-cli tool:
 
+    # client is running in some container 
     make cli
+    # start redis-cli in localhost
+    make localcli 	
 
 To shutdown cluster
 
@@ -128,6 +136,8 @@ To Restart cluster
 
 To need more redis instances
 
+    # firstly,supervisor-allredis.conf need to be splitted more files
+    supervisor-allredis.conf ==> supervisor-allredis.mq.1.conf supervisor-allredis.mq.2.conf supervisor-allredis.mq.3.conf
     # default is 1 ,now 2,another 3M+3S,container-name is redis-cluster-mq.2
     make CIDLIST=2 run
     # now 3,another 3M+3S,container-name is redis-cluster-mq.3
@@ -135,14 +145,16 @@ To need more redis instances
     # or this:
     make CIDLIST="2 3" run
     
-    # run make to create cluster
+    # run make to create cluster，must be including all redis instances
     make CIDLIST="1 2 3" cluster
     # if your localhost has redis-trib.rb，Please execute this：
-    make CIDLIST="1 2 3" clusterinfo && ./docker-data/redis-cluster-trib.sh local your-trib-fullname
+    make CIDLIST="1 2 3" clusterinfo && \
+        ./docker-data/redis-cluster-trib.sh local your-trib-fullname
 
     # client for first redis-instance's ip port
     make cli
-    # client for another
+    # client for another，因为相同端口映射到宿主机，所以仅映射了第一个容器的端口，
+    # 因此不建议使用本地客户端，建议在容器里边使用客户端
     redis-cli -c -h docker-ip -p docker-port
 
 To Another RedisType:

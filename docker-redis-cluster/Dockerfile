@@ -32,6 +32,6 @@ RUN echo "chmod 755 /redis-cluster/*/bin/*.sh" >> ~/.bash_profile
 #执行脚本，并将CMD指定字符串作为脚本入参传递给docker-entrypoint.sh
 ##########################################
 ENTRYPOINT ["/redis-cluster/mq/bin/docker-entrypoint.sh"]
-CMD ["mq"]
+CMD ["mq","1"]
 
 

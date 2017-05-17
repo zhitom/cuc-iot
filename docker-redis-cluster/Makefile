@@ -25,34 +25,41 @@ RUNOPT?=--net=host
 #######################################################
 #计算出来的变量
 #######################################################
-#暴露需映射的端口
-PORTOPT=$(shell for p in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all 2>/dev/null`;do \
-					CLIENTPORT="$${CLIENTPORT} -p $$p:$$p"; \
-					done&&echo $${CLIENTPORT})
 #挂载的文件卷
-VOLUMEOPT=-v $(VOLUMEFULLNAME)/bin:$(REDISVOLUME)/bin \
-		  -v $(VOLUMEFULLNAME)/conf:$(REDISVOLUME)/conf \
-		  -v $(VOLUMEFULLNAME)/data:$(REDISVOLUME)/data \
-		  -v $(VOLUMEFULLNAME)/log:$(REDISVOLUME)/log
+VOLUMEOPT=-v $(VOLUMEFULLNAME):$(REDISVOLUME)
 #######################################################
 #目标定义
 #######################################################
+.PHONY : help rebuild run start stop bash cli localcli clean cleandata cleanlog distclean cluster
 help:
+	@echo "Targets:"
 	@echo "rebuild  	rebuild image"
 	@echo "run      	run image to new container"
 	@echo "start    	start container"
 	@echo "stop     	stop container"
 	@echo "bash      	start bash with current container"
 	@echo "cli    	 	start redis-cli using first redis-ip:port with current container"
+	@echo "localcli 	start redis-cli in localhost"
 	@echo "clean    	delete container"
-	@echo "cleandata  	delete all data and logs"
+	@echo "cleandata  	delete all data "
+	@echo "cleanlog 	delete all logs"
 	@echo "distclean 	delete image"
 	@echo "cluster   	create cluster,only once!"
+	@echo "OPTION:"
+	@echo "REDISTYPE=mq(default) devinfo session rating ratingcdr dupcheck autorule"
+	@echo "CIDLIST=1(default)     container instance ID,Don't repeat with same REDISTYPE,such as:1 2 3"
+	@echo "RUNOPT=--net=host(default) to deploy two-way commucation for conveniently Developer or Tester."
 
 rebuild:
+	cp -f ./rebuild-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
+	chmod 0777 ./$(VOLUMENAME)/$(REDISTYPE)/bin/*.sh
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 
 run:
+	@echo "==>sync shell files ..."
+	cp -f ./rebuild-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
+	chmod 0777 ./$(VOLUMENAME)/$(REDISTYPE)/bin/*.sh
+	@echo "==>empty container's instance infomation ..."
 	@for port in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all`; \
 	do \
 	if [ ! -d ./$(VOLUMENAME)/$(REDISTYPE)/data/$$port ]; then \
@@ -61,16 +68,22 @@ run:
 	cp /dev/null ./$(VOLUMENAME)/$(REDISTYPE)/data/$$port/redis-cluster.ip.port; \
 	done
 	@for cid in $(CIDLIST);do \
-	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
-	echo $(DOCKCMD) run $(RUNOPT) -d $(PORTOPT) $(VOLUMEOPT) --name redis-cluster.$(REDISTYPE).$$cid -h redis-cluster.$(REDISTYPE).$$cid --entrypoint $(REDISVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(REDISTYPE); \
-	$(DOCKCMD) run $(RUNOPT) -d $(PORTOPT) $(VOLUMEOPT) --name redis-cluster.$(REDISTYPE).$$cid -h redis-cluster.$(REDISTYPE).$$cid --entrypoint $(REDISVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(REDISTYPE); \
-	echo $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
-	$(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
-	echo $(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
-	$(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
-	echo $(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
-	$(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
-	done
+	echo "==>getport and redis-cluster.$(REDISTYPE).$$cid"; \
+	./rebuild-data/getport.sh $(REDISTYPE) $$cid; \
+	echo $(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.$(REDISTYPE).$$cid.conf` \
+					$(VOLUMEOPT) --name redis-cluster.$(REDISTYPE).$$cid -h redis-cluster.$(REDISTYPE).$$cid --entrypoint $(REDISVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(REDISTYPE) $$cid; \
+	$(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.$(REDISTYPE).$$cid.conf` \
+                    $(VOLUMEOPT) --name redis-cluster.$(REDISTYPE).$$cid -h redis-cluster.$(REDISTYPE).$$cid --entrypoint $(REDISVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(REDISTYPE) $$cid; \
+    echo $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ps -ef; \
+    $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ps -ef; \
+    echo $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
+    $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
+    echo $(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
+    $(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
+    echo $(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
+    $(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
+    done
+
 
 start:
 	@for cid in $(CIDLIST);do \
@@ -109,6 +122,14 @@ cli:
 	break; \
 	done
 
+localcli:
+	@for port in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all`; \
+	do \
+	echo "==>redis-cli -c -p $$port"; \
+	redis-cli -c -p $$port; \
+	break; \
+	done
+
 clean:
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
@@ -117,7 +138,22 @@ clean:
 	done
 
 cleandata:
-	rm -rf ./$(VOLUMENAME)/$(REDISTYPE)/data/* ./$(VOLUMENAME)/$(REDISTYPE)/log/* 2>/dev/null
+	@while [ 1 ];do \
+	echo "Cleandata Confirmed:y/n?"; \
+	read y; \
+	if [ "x$$y" = "xy" ]; then \
+	break; \
+	elif [ "x$$y" = "x" ]; then \
+	continue; \
+	else \
+	echo "Canceled!"; \
+	exit 111; \
+	fi; \
+	done
+	rm -rf ./$(VOLUMENAME)/$(REDISTYPE)/data/* 2>/dev/null
+
+cleanlog:
+	rm -rf ./$(VOLUMENAME)/$(REDISTYPE)/log/* 2>/dev/null
 
 distclean:
 	$(DOCKCMD) rmi $(IMGNAME)
@@ -126,6 +162,9 @@ clusterinfo:
 	-cp /dev/null ./$(VOLUMENAME)/$(REDISTYPE)/data/redis-cluster.ip.port.all
 	@for port in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all`; \
 	do \
+	if [ "x$$port" = "x" ]; then \
+	continue; \
+	fi; \
 	cat ./$(VOLUMENAME)/$(REDISTYPE)/data/$$port/redis-cluster.ip.port 2>/dev/null >> ./$(VOLUMENAME)/$(REDISTYPE)/data/redis-cluster.ip.port.all ; \
 	done
 	cat ./$(VOLUMENAME)/$(REDISTYPE)/data/redis-cluster.ip.port.all|sort -u > ./$(VOLUMENAME)/$(REDISTYPE)/data/redis-cluster.ip.port.all.tmp
