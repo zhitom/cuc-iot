@@ -9,10 +9,10 @@ REDISTYPE?=mq
 REDISVOLUME?=/redis-cluster/$(REDISTYPE)
 #集群容器名字
 CONTAINERCLUSTER?=redis-cluster.$(REDISTYPE).cluster
-#完整的容器列表，用空格分割,默认1个
-CIDLIST?="1"
 #容器命令，某些可能需要加sudo
 DOCKCMD?=docker
+#外面透传给容器或客户端的命令
+ARGCMD?=""
 #######################################################
 #下面的根据本机情况进行修改
 #######################################################
@@ -27,10 +27,12 @@ RUNOPT?=--net=host
 #######################################################
 #挂载的文件卷
 VOLUMEOPT=-v $(VOLUMEFULLNAME):$(REDISVOLUME)
+#完整的容器列表，用空格分割,默认1个
+CIDLIST?=$(shell cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/supervisor-allredis.cids)
 #######################################################
 #目标定义
 #######################################################
-.PHONY : help rebuild run start stop bash cli localcli clean cleandata cleanlog distclean cluster
+.PHONY : help rebuild run start stop bash exe cli cliall localcli localcliall clean cleandata cleanlog distclean cluster
 help:
 	@echo "Targets:"
 	@echo "rebuild  	rebuild image"
@@ -38,8 +40,11 @@ help:
 	@echo "start    	start container"
 	@echo "stop     	stop container"
 	@echo "bash      	start bash with current container"
-	@echo "cli    	 	start redis-cli using first redis-ip:port with current container"
+	@echo "exe      	execute command with current container,use ARGCMD='yourcmd'"
+	@echo "cli    	 	start redis-cli using first redis-ip:port with current container,can use ARGCMD='yourcmd'"
+	@echo "cliall    	execute ARGCMD='yourcmd' within all containers"
 	@echo "localcli 	start redis-cli in localhost"
+	@echo "localcliall 	locally execute ARGCMD='yourcmd' within all containers"
 	@echo "clean    	delete container"
 	@echo "cleandata  	delete all data "
 	@echo "cleanlog 	delete all logs"
@@ -47,8 +52,8 @@ help:
 	@echo "cluster   	create cluster,only once!"
 	@echo "OPTION:"
 	@echo "REDISTYPE=mq(default) devinfo session rating ratingcdr dupcheck autorule"
-	@echo "CIDLIST=1(default)     container instance ID,Don't repeat with same REDISTYPE,such as:1 2 3"
 	@echo "RUNOPT=--net=host(default) to deploy two-way commucation for conveniently Developer or Tester."
+	@echo "current ContainerID List：$(CIDLIST)"
 
 rebuild:
 	cp -f ./rebuild-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
@@ -56,6 +61,7 @@ rebuild:
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 
 run:
+	@echo "==>current ContainerID List：$(CIDLIST)"
 	@echo "==>sync shell files ..."
 	cp -f ./rebuild-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
 	chmod 0777 ./$(VOLUMENAME)/$(REDISTYPE)/bin/*.sh
@@ -84,12 +90,13 @@ run:
     $(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
     done
 
-
 start:
+	@echo "==>current ContainerID List：$(CIDLIST)"
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
 	echo $(DOCKCMD) start redis-cluster.$(REDISTYPE).$$cid; \
 	$(DOCKCMD) start redis-cluster.$(REDISTYPE).$$cid; \
+	sleep 3; \
 	echo $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
 	$(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
 	echo $(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
@@ -97,6 +104,7 @@ start:
 	done
 
 stop:
+	@echo "==>current ContainerID List：$(CIDLIST)"
 	$(DOCKCMD) run -d --rm $(VOLUMEOPT) --name $(CONTAINERCLUSTER) -h $(CONTAINERCLUSTER) --entrypoint $(REDISVOLUME)/bin/redis-cluster-trib.sh $(IMGNAME) save
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
@@ -107,6 +115,7 @@ stop:
 	done
 
 bash:
+	@echo "==>current ContainerID List：$(CIDLIST)"
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
 	echo $(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash; \
@@ -114,23 +123,48 @@ bash:
 	break; \
 	done
 
-cli:
+exe:
+	@echo "==>current ContainerID List：$(CIDLIST)"
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
-	echo $(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh  $(REDISTYPE); \
-	$(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh  $(REDISTYPE); \
+	echo $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid $(ARGCMD); \
+	$(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid $(ARGCMD); \
+	done
+
+cli:
+	@echo "==>current ContainerID List：$(CIDLIST)"
+	@for cid in $(CIDLIST);do \
+	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
+	echo $(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 1 $(REDISTYPE) $(ARGCMD); \
+	$(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 1 $(REDISTYPE) $(ARGCMD); \
 	break; \
+	done
+
+cliall:
+	@echo "==>current ContainerID List：$(CIDLIST)"
+	@for cid in $(CIDLIST);do \
+	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
+	echo $(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 0 $(REDISTYPE) $(ARGCMD); \
+	$(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 0 $(REDISTYPE) $(ARGCMD); \
 	done
 
 localcli:
 	@for port in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all`; \
 	do \
-	echo "==>redis-cli -c -p $$port"; \
-	redis-cli -c -p $$port; \
+	echo "==>redis-cli -c -p $$port $(ARGCMD)"; \
+	redis-cli -c -p $$port $(ARGCMD); \
 	break; \
 	done
 
+localcliall:
+	@for port in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all`; \
+	do \
+	echo "==>redis-cli -c -p $$port $(ARGCMD)"; \
+	redis-cli -c -p $$port $(ARGCMD); \
+	done
+
 clean:
+	@echo "==>current ContainerID List：$(CIDLIST)"
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
 	echo $(DOCKCMD) container rm redis-cluster.$(REDISTYPE).$$cid; \

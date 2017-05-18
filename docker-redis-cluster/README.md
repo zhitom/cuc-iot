@@ -52,7 +52,8 @@
       - redis-cluster.replicas：集群的副本数，不含主节点，当前配置为1
       - redis-cluster.tmpl： 集群个性化配置模版
       - redis-cluster-common.conf：集群公共部分配置
-      - supervisor-allredis*.conf：实例进程监控配置，如自动启动
+      - supervisor-allredis.cids：容器ID列表，用于匹配supervisor-allredis.*.conf
+      - supervisor-allredis.\*.conf：实例进程监控配置，如自动启动，并根据此文件名推算出容器个数，所以请只存放实际需要的配置文件，并且必须是supervisor-allredis.*.conf格式
   - data：存放redis持久化的文件
       - redis-cluster.ip.port.all：所有redis实例的IP和PORT列表，makefile自动维护，从${port}/redis-cluster.ip.port中合并
       - ${port}/redis-cluster.ip.port:容器启动的时候自动产生，汇报IP和PORT信息
@@ -66,40 +67,44 @@
 
 # 操作统一
 
-为简化和统一操作，使用make命令来进行了封装：
-
-make的目标如下：
+为简化和统一操作，使用make命令来进行了封装,直接敲make打印下面的帮助信息
 
     - rebuild   rebuild image
     - run       run image to new container
     - start     start container
     - stop      stop container
     - bash      start bash with current container
+    - exe      	execute command with current container,use ARGCMD='yourcmd'
     - cli       start redis-cli using first redis-ip:port instance container
+    - cliall    	execute ARGCMD='yourcmd' within all containers
     - localcli  start redis-cli in localhost
+    - localcliall locally execute ARGCMD='yourcmd' within all containers
     - clean     delete container
     - cleandata delete all data
     - cleanlog  delete all logs
     - distclean delete image
-    - cluster   	create or check cluster,only once!
+    - cluster 	create or check cluster,only once!
 
 make的个性化选项：
 
     - REDISTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule
-    - CIDLIST=1(默认)     容器实例编号，同一个REDISTYPE不重复即可
     - RUNOPT=--net=host(默认) 该选择主要方便容器和宿主机双向通信，因为redis客户端集群场景下会切换ip，否则只能在容器里边使用客户端了。
 
 # 操作方法
 
-To build your own image run,一般执行一次即可:
+##镜像准备和启动
+
+To build your own image run,Normally run once!
 
     # if image is exists,please firstly execute this:
     make distclean 
     # build redis instance image
     make rebuild
 
-And to start cluster use:
+And to start and stop cluster:
 
+    # prepare cluster： Firstly Configure and modify redis-cluster-volume/conf/*
+    ls -l ./redis-cluster-volume/conf/*
     # start all redis instance，default container-name is redis-cluster-mq.1
     make run
     # create redis cluster，if it is only restarted,don't need execute this:
@@ -107,7 +112,8 @@ And to start cluster use:
     # if your localhost has redis-trib.rb，Please execute this：
     make clusterinfo && ./docker-data/redis-cluster-trib.sh local your-trib-fullname
 
-    # and top stop the container run
+    # and top stop the container,it will firstly save cluster infomations
+    # 172.17.0.2:5000> CLUSTER SAVECONFIG
     make stop
     # and restart the container
     make start
@@ -116,48 +122,44 @@ And to start cluster use:
     # delete container
     make clean
 
-To connect to your cluster you can use the redis-cli tool:
+## 容器操作
+
+To login on some container with bash:
+    
+    make bash
+
+To Execute command on all container:
+
+    make exe ARGCMD='ps -ef'
+    make exe ARGCMD='ls -l /redis-cluster/*'
+
+To execute redis-cli tool in one container:
 
     # client is running in some container 
     make cli
     # start redis-cli in localhost
-    make localcli 	
+    make localcli
 
-To shutdown cluster
+    #print cluster info
+    make cli ARGCMD='cluster info'
 
-    # first save cluster infomations
-    # 172.17.0.2:5000> CLUSTER SAVECONFIG
-    # then stop container,all in make stop
-    make stop
+To execute redis-cli command once in all container:
 
-To Restart cluster
-    
-    make run
+    #print redis instance's info
+    make cliall ARGCMD='info'
+
+##高级操作
 
 To need more redis instances
 
     # firstly,supervisor-allredis.conf need to be splitted more files
     supervisor-allredis.conf ==> supervisor-allredis.mq.1.conf supervisor-allredis.mq.2.conf supervisor-allredis.mq.3.conf
-    # default is 1 ,now 2,another 3M+3S,container-name is redis-cluster-mq.2
-    make CIDLIST=2 run
-    # now 3,another 3M+3S,container-name is redis-cluster-mq.3
-    make CIDLIST=3 run
-    # or this:
-    make CIDLIST="2 3" run
-    
-    # run make to create cluster，must be including all redis instances
-    make CIDLIST="1 2 3" cluster
-    # if your localhost has redis-trib.rb，Please execute this：
-    make CIDLIST="1 2 3" clusterinfo && \
-        ./docker-data/redis-cluster-trib.sh local your-trib-fullname
-
-    # client for first redis-instance's ip port
-    make cli
-    # client for another，因为相同端口映射到宿主机，所以仅映射了第一个容器的端口，
-    # 因此不建议使用本地客户端，建议在容器里边使用客户端
-    redis-cli -c -h docker-ip -p docker-port
+    # run this or other same of up:
+    make run
 
 To Another RedisType:
 
     #mq devinfo session rating ratingcdr dupcheck autorule
     make REDISTYPE="devinfo" ...  #...等同上面make后面的命令
+
+
