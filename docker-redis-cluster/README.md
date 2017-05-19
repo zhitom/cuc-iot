@@ -24,6 +24,7 @@
     - 由于是集群，查询key的时候会切换ip:port，所以要将容器的网络作为host模式启动
         - 此选项在Makefile.HOSTOPT设置为‘--net=host’，如果本机为linux的就设置为空即可
         - 否则只能在容器里边使用客户端查询
+- 因使用了makefile，所以进入docker的mingw环境需要提供make命令，本人将cygwin的make命令直接copy到了mingw环境里边可能/bin/sh也有类似的问题，可以直接将bash.exe拷贝成sh.exe
 
 # 持久化
 
@@ -33,6 +34,8 @@
     - VOLUMEFULLNAME：为虚拟机里边的路径，需要先在VirtualBox加载目录
 - Linux
     - VOLUMEFULLNAME：为虚拟机里边的路径
+- 目前除了mq和session不需要数据持久化外，其他redis都进行了数据持久化的配置
+- 集群信息本身还是需要持久化，所以持久化的文件卷不能少。
 
 # 目录文件说明
 
