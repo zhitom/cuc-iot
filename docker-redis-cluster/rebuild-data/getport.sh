@@ -5,6 +5,11 @@ CID="$1";shift
 
 CheckRedisType ${REDISTYPE}
 
+if [ $? -ne 0 ]; then
+  GetAllRedisType
+  exit 110
+fi
+
 VOLUME="./redis-cluster-volume/${REDISTYPE}"
 
 cat ${VOLUME}/conf/supervisor-allredis.${REDISTYPE}.${CID}.conf 2>/dev/null|grep 'command=/redis/src/redis-server'|awk -F/ '{printf "-p %s:%s\n",$8,$8}' > ${VOLUME}/conf/redis-cluster.ports.${REDISTYPE}.${CID}.conf

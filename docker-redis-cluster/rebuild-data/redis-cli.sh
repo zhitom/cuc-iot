@@ -5,14 +5,19 @@ REDISTYPE="$1";shift
 
 CheckRedisType ${REDISTYPE}
 
+if [ $? -ne 0 ]; then
+  GetAllRedisType
+  exit 110
+fi
+
 REDISVOLUME="/redis-cluster/${REDISTYPE}"
 
 FIRSTPORT=`cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|head -1`
 FIRSTIP=`echo ${FIRSTPORT}|awk -F: '{print $1}'`
 FIRSTP=`echo ${FIRSTPORT}|awk -F: '{print $2}'`
 
-echo "=================================================="
 if [ ${ISLIST} -eq 1 ]; then
+    echo "==========================================================================="
     echo "Redis Instances:"
     cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
     do
@@ -30,7 +35,7 @@ if [ ${ISLIST} -eq 1 ]; then
         FIRSTP=${port}
         echo "[ACTIVE] /redis/src/redis-cli -c -h ${ip} -p ${port}"
     done
-    echo "=================================================="
+    echo "==========================================================================="
     /redis/src/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP} cluster info
 else
     cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
@@ -47,7 +52,11 @@ else
         fi
         FIRSTIP=${ip}
         FIRSTP=${port}
+        echo "==========================================================================="
+        echo "==>/redis/src/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP}" $@
+        /redis/src/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP} $@
     done
+    exit 0
 fi
 echo "/redis/src/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP}" $@
 exec /redis/src/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP} $@

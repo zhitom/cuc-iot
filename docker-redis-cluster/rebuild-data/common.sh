@@ -3,7 +3,6 @@
 
 CheckRedisType()
 {
-  redistype="mq devinfo session rating ratingcdr dupcheck autorule"
   if [ "x${1}" = 'xmq' ]; then
     shift
   elif [ "x${1}" = 'xdevinfo' ]; then
@@ -19,9 +18,14 @@ CheckRedisType()
   elif [ "x${1}" = 'xautorule' ]; then
     shift
   else
-    echo "Please use correct redistype=${redistype}!"
-    exit 100
+    return 100
   fi
+  return 0
+}
+
+GetAllRedisType()
+{
+  echo "mq devinfo session rating ratingcdr dupcheck autorule"
 }
 
 #redis客户端封装

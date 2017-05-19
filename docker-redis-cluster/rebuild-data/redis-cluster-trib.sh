@@ -6,12 +6,31 @@ REDISTYPE="$1"
 
 CheckRedisType ${REDISTYPE}
 
+isredistype=0
+if [ $? -ne 0 ]; then
+  if [ "x$1" = "xcheck" ]; then
+    :
+  elif [ "x$1" = "xlocal" ]; then
+    :
+  elif [ "x$1" = "xsave" ]; then
+    :
+  elif [ "x$1" = "xclear" ]; then
+    :
+  else
+    echo `GetAllRedisType` or check local save clear
+    exec "$@"
+    exit 111
+  fi
+else
+  isredistype=1
+fi
+
 REDISVOLUME="/redis-cluster/${REDISTYPE}"
 VOLUMENAME="redis-cluster-volume"
 LOCALVOLUME="/${VOLUMENAME}/${REDISTYPE}"
 LOGFILE=${REDISVOLUME}/log/`basename $0`.log
 
-if [ "$1" = 'mq' ]; then
+if [ $isredistype -eq 1 ]; then
     #获取整个集群的实例信息，可能是跨容器的集群
     REPNUM=`cat ${REDISVOLUME}/conf/redis-cluster.replicas 2>/dev/null`
     PORTSLIST=""
@@ -76,10 +95,10 @@ elif [ "$1" = 'save' ]; then
     IP=`echo $FIRSTPORT|awk -F: '{print $1}'`
     PORT=`echo $FIRSTPORT|awk -F: '{print $2}'`
     REDIS_SELF "-c -h ${IP} -p ${PORT}" "CLUSTER SAVECONFIG"
-    echo ${2} >> /redis-cluster/mq/conf/redis-cluster.ip.port.all
-else #clear 
-  echo "Clear /redis-cluster/mq/conf/redis-cluster.ip.port.all" >> ${LOGFILE}
-  cp /dev/null /redis-cluster/mq/conf/redis-cluster.ip.port.all
+    echo ${2} >> ${REDISVOLUME}/conf/redis-cluster.ip.port.all
+elif [ "$1" = 'clear' ]; then #clear 
+  echo "Clear ${REDISVOLUME}/conf/redis-cluster.ip.port.all" >> ${LOGFILE}
+  cp /dev/null ${REDISVOLUME}/conf/redis-cluster.ip.port.all
   #tail -f /var/log/bootstrap.log #容器不退出
 fi
 

@@ -88,6 +88,8 @@ run:
     $(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
     echo $(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
     $(DOCKCMD) port redis-cluster.$(REDISTYPE).$$cid; \
+    echo $(DOCKCMD) ps -a --filter "name=redis-cluster.$(REDISTYPE).$$cid"; \
+    $(DOCKCMD) ps -a --filter "name=redis-cluster.$(REDISTYPE).$$cid"; \
     done
 
 start:
@@ -101,6 +103,8 @@ start:
 	$(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid ifconfig; \
 	echo $(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
 	$(DOCKCMD) logs redis-cluster.$(REDISTYPE).$$cid; \
+	echo $(DOCKCMD) ps -a --filter "name=redis-cluster.$(REDISTYPE).$$cid"; \
+	$(DOCKCMD) ps -a --filter "name=redis-cluster.$(REDISTYPE).$$cid"; \
 	done
 
 stop:
@@ -144,8 +148,8 @@ cliall:
 	@echo "==>current ContainerID List：$(CIDLIST)"
 	@for cid in $(CIDLIST);do \
 	echo "==>redis-cluster.$(REDISTYPE).$$cid"; \
-	echo $(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 0 $(REDISTYPE) $(ARGCMD); \
-	$(DOCKCMD) exec -it redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 0 $(REDISTYPE) $(ARGCMD); \
+	echo $(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 0 $(REDISTYPE) $(ARGCMD); \
+	$(DOCKCMD) exec redis-cluster.$(REDISTYPE).$$cid /bin/bash $(REDISVOLUME)/bin/redis-cli.sh 0 $(REDISTYPE) $(ARGCMD); \
 	done
 
 localcli:
@@ -211,6 +215,7 @@ cluster:clusterinfo
 	$(DOCKCMD) run -d --rm  $(VOLUMEOPT) --name $(CONTAINERCLUSTER) -h $(CONTAINERCLUSTER) --entrypoint $(REDISVOLUME)/bin/redis-cluster-trib.sh $(IMGNAME) ${REDISTYPE}
 	sleep 5
 	-cat ./$(VOLUMENAME)/$(REDISTYPE)/log/redis-cluster-trib.sh.log 2>/dev/null
+
 
 
 
