@@ -6,6 +6,7 @@
 
 - container deploys redis 6 instances=3M+3S!(实例，6个实例，3主+3备)。
 - 目前预先配置6个mdb+1个mq集群: mq devinfo session rating ratingcdr dupcheck autorule
+- REDIS_HOME为redis开源软件的HOME目录，指向/redis/src
 
 
 # 版本
@@ -40,7 +41,7 @@
 # 目录文件说明
 
 - Makefile和Dockerfile用于创建该镜像
-- rebuild-data：源码目录，用于创建该镜像
+- build-data：源码目录，用于创建该镜像
   - supervisord.conf：实例进程监控主配置文件
   - common.sh：公共函数
   - docker-entrypoint.sh：启动redis实例
@@ -48,7 +49,7 @@
   - redis-cluster-trib.sh：集群创建脚本
   - getport.sh：获取容器对应的端口信息，此信息在容器启动的时候输出
 - redis-cluster-volume：为容器持久化和共享的文件夹
-  - bin：存放可执行脚本，同rebuild-data下面的*.sh,创建镜像时makefile里边自动同步
+  - bin：存放可执行脚本，同build-data下面的*.sh,创建镜像时makefile里边自动同步
   - conf：存放配置及模版文件
       - redis-cluster.ports.all：所有redis实例的port列表
       - redis-cluster.ports.*.*：redis实例的按主机分布的port列表
@@ -72,7 +73,7 @@
 
 为简化和统一操作，使用make命令来进行了封装,直接敲make打印下面的帮助信息
 
-    - rebuild   rebuild image
+    - build     build image
     - run       run image to new container
     - start     start container
     - stop      stop container
@@ -102,7 +103,7 @@ To build your own image run,Normally run once!
     # if image is exists,please firstly execute this:
     make distclean 
     # build redis instance image
-    make rebuild
+    make build
 
 And to start and stop cluster:
 

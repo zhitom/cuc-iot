@@ -32,10 +32,10 @@ CIDLIST?=$(shell cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/supervisor-allredis.cids)
 #######################################################
 #目标定义
 #######################################################
-.PHONY : help rebuild run start stop bash exe cli cliall localcli localcliall clean cleandata cleanlog distclean cluster
+.PHONY : help build run start stop bash exe cli cliall localcli localcliall clean cleandata cleanlog distclean cluster
 help:
 	@echo "Targets:"
-	@echo "rebuild  	rebuild image"
+	@echo "build  	    build image"
 	@echo "run      	run image to new container"
 	@echo "start    	start container"
 	@echo "stop     	stop container"
@@ -55,15 +55,15 @@ help:
 	@echo "RUNOPT=--net=host(default) to deploy two-way commucation for conveniently Developer or Tester."
 	@echo "current ContainerID List：$(CIDLIST)"
 
-rebuild:
-	cp -f ./rebuild-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
+build:
+	cp -f ./build-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
 	chmod 0777 ./$(VOLUMENAME)/$(REDISTYPE)/bin/*.sh
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 
 run:
 	@echo "==>current ContainerID List：$(CIDLIST)"
 	@echo "==>sync shell files ..."
-	cp -f ./rebuild-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
+	cp -f ./build-data/*.sh ./$(VOLUMENAME)/$(REDISTYPE)/bin/
 	chmod 0777 ./$(VOLUMENAME)/$(REDISTYPE)/bin/*.sh
 	@echo "==>empty container's instance infomation ..."
 	@for port in `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.all`; \
@@ -75,7 +75,7 @@ run:
 	done
 	@for cid in $(CIDLIST);do \
 	echo "==>getport and redis-cluster.$(REDISTYPE).$$cid"; \
-	./rebuild-data/getport.sh $(REDISTYPE) $$cid; \
+	./build-data/getport.sh $(REDISTYPE) $$cid; \
 	echo $(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.$(REDISTYPE).$$cid.conf` \
 					$(VOLUMEOPT) --name redis-cluster.$(REDISTYPE).$$cid -h redis-cluster.$(REDISTYPE).$$cid --entrypoint $(REDISVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(REDISTYPE) $$cid; \
 	$(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(REDISTYPE)/conf/redis-cluster.ports.$(REDISTYPE).$$cid.conf` \

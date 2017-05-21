@@ -7,6 +7,7 @@ MAINTAINER ZhiQiang Shan <shandyshandy@163.com>
 ##########################################
 #切换当前目录
 WORKDIR /
+ENV REDIS_HOME /redis/src
 #RUN apt-get install -y vim sudo
 #RUN echo export LC_ALL=C.UTF-8 >>/etc/profile
 
@@ -16,7 +17,7 @@ WORKDIR /
 RUN rm -rf /redis-conf /docker-entrypoint.sh
 RUN rm -rf /redis-data
 RUN rm -rf /etc/supervisor/conf.d/supervisord.conf
-COPY ./rebuild-data/supervisord.conf  /etc/supervisor/supervisord.conf
+COPY ./build-data/supervisord.conf  /etc/supervisor/supervisord.conf
 
 ##########################################
 #增加可执行权限

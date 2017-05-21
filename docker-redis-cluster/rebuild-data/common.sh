@@ -31,7 +31,8 @@ GetAllRedisType()
 #redis客户端封装
 REDIS_SELF()
 {
-    /redis/src/redis-cli $1 <<EOF
+    REDISCLI="$1";shift;
+    ${REDISCLI} $1 <<EOF
 $2
 quit
 EOF

@@ -29,6 +29,7 @@ REDISVOLUME="/redis-cluster/${REDISTYPE}"
 VOLUMENAME="redis-cluster-volume"
 LOCALVOLUME="/${VOLUMENAME}/${REDISTYPE}"
 LOGFILE=${REDISVOLUME}/log/`basename $0`.log
+REDISPATH="${REDIS_HOME}"  #/redis/src
 
 if [ $isredistype -eq 1 ]; then
     #获取整个集群的实例信息，可能是跨容器的集群
@@ -39,11 +40,11 @@ if [ $isredistype -eq 1 ]; then
     done
     #检测集群状态是否正常
     FIRSTPORT=`cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|head -1`
-    msg="`/redis/src/redis-trib.rb check ${FIRSTPORT}|grep '\[ERR\]'`"
+    msg="`${REDISPATH}/redis-trib.rb check ${FIRSTPORT}|grep '\[ERR\]'`"
     if [ "x${msg}" != "x" ]; then
-      echo "ruby /redis/src/redis-trib.rb create --replicas ${REPNUM} ${PORTSLIST}" >> ${LOGFILE}
-      echo "yes" | ruby /redis/src/redis-trib.rb create --replicas ${REPNUM} ${PORTSLIST} >> ${LOGFILE}
-      msg="`/redis/src/redis-trib.rb check ${FIRSTPORT}|grep '\[ERR\]'`"
+      echo "ruby ${REDISPATH}/redis-trib.rb create --replicas ${REPNUM} ${PORTSLIST}" >> ${LOGFILE}
+      echo "yes" | ruby ${REDISPATH}/redis-trib.rb create --replicas ${REPNUM} ${PORTSLIST} >> ${LOGFILE}
+      msg="`${REDISPATH}/redis-trib.rb check ${FIRSTPORT}|grep '\[ERR\]'`"
       if [ "x${msg}" != "x" ]; then
         echo "create cluster FAILED!" >> ${LOGFILE}
       fi
@@ -60,7 +61,7 @@ elif [ "$1" = 'check' ]; then
     done
     #检测集群状态是否正常
     FIRSTPORT=`cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|head -1`
-    msg="`/redis/src/redis-trib.rb check ${FIRSTPORT}|grep '\[ERR\]'`"
+    msg="`${REDISPATH}/redis-trib.rb check ${FIRSTPORT}|grep '\[ERR\]'`"
     if [ "x${msg}" = "x" ]; then
       echo "redis-cluster maybe is ok,please check it again!" >> ${LOGFILE}
     else
@@ -94,7 +95,7 @@ elif [ "$1" = 'save' ]; then
     FIRSTPORT=`cat ./docker-data/redis-cluster.ip.port.all 2>/dev/null|head -1`
     IP=`echo $FIRSTPORT|awk -F: '{print $1}'`
     PORT=`echo $FIRSTPORT|awk -F: '{print $2}'`
-    REDIS_SELF "-c -h ${IP} -p ${PORT}" "CLUSTER SAVECONFIG"
+    REDIS_SELF ${REDISPATH}/redis-cli "-c -h ${IP} -p ${PORT}" "CLUSTER SAVECONFIG"
     echo ${2} >> ${REDISVOLUME}/conf/redis-cluster.ip.port.all
 elif [ "$1" = 'clear' ]; then #clear 
   echo "Clear ${REDISVOLUME}/conf/redis-cluster.ip.port.all" >> ${LOGFILE}
