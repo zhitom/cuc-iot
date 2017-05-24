@@ -117,6 +117,7 @@ stop:
 	echo $(DOCKCMD) wait redis-cluster.$(REDISTYPE).$$cid; \
 	$(DOCKCMD) wait redis-cluster.$(REDISTYPE).$$cid; \
 	done
+	$(DOCKCMD) ps -a;
 
 bash:
 	@echo "==>current ContainerID List：$(CIDLIST)"
@@ -174,6 +175,7 @@ clean:
 	echo $(DOCKCMD) container rm redis-cluster.$(REDISTYPE).$$cid; \
 	$(DOCKCMD) container rm redis-cluster.$(REDISTYPE).$$cid; \
 	done
+	$(DOCKCMD) ps -a;
 
 cleandata:
 	@while [ 1 ];do \
@@ -195,6 +197,7 @@ cleanlog:
 
 distclean:
 	$(DOCKCMD) rmi $(IMGNAME)
+	$(DOCKCMD) images;
 
 clusterinfo:
 	-cp /dev/null ./$(VOLUMENAME)/$(REDISTYPE)/data/redis-cluster.ip.port.all

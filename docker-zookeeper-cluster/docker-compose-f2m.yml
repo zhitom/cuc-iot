@@ -1,0 +1,60 @@
+version: '3'
+services:
+    zkcluster-f2m-1:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12000:12000
+            - 13000:13000
+            - 14000:14000
+        volumes:
+            - /zookeeper-cluster-volume/f2m/bin:/zookeeper-cluster/f2m/bin
+            - /zookeeper-cluster-volume/f2m/zkcluster-f2m-1/data:/zookeeper-cluster/f2m/zkcluster-f2m-1/data
+            - /zookeeper-cluster-volume/f2m/zkcluster-f2m-1/datalog:/zookeeper-cluster/f2m/zkcluster-f2m-1/datalog
+        hostname: zkcluster-f2m-1
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_PORT: 14000
+            ZOO_DATA_DIR: /zookeeper-cluster/f2m/zkcluster-f2m-1/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/f2m/zkcluster-f2m-1/datalog
+            ZOO_SERVERS: server.1=zkcluster-f2m-1:12000:13000 server.2=zkcluster-f2m-2:12001:13001 server.3=zkcluster-f2m-3:12002:13002
+
+    zkcluster-f2m-2:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12001:12001
+            - 13001:13001
+            - 14001:14001
+        hostname: zkcluster-f2m-2
+        volumes:
+            - /zookeeper-cluster-volume/f2m/bin:/zookeeper-cluster/f2m/bin
+            - /zookeeper-cluster-volume/f2m/zkcluster-f2m-2/data:/zookeeper-cluster/f2m/zkcluster-f2m-2/data
+            - /zookeeper-cluster-volume/f2m/zkcluster-f2m-2/datalog:/zookeeper-cluster/f2m/zkcluster-f2m-2/datalog
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_PORT: 14001
+            ZOO_DATA_DIR: /zookeeper-cluster/f2m/zkcluster-f2m-2/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/f2m/zkcluster-f2m-2/datalog
+            ZOO_SERVERS: server.1=zkcluster-f2m-1:12000:13000 server.2=zkcluster-f2m-2:12001:13001 server.3=zkcluster-f2m-3:12002:13002
+
+    zkcluster-f2m-3:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12002:12002
+            - 13002:13002
+            - 14002:14002
+        volumes:
+            - /zookeeper-cluster-volume/f2m/bin:/zookeeper-cluster/f2m/bin
+            - /zookeeper-cluster-volume/f2m/zkcluster-f2m-3/data:/zookeeper-cluster/f2m/zkcluster-f2m-3/data
+            - /zookeeper-cluster-volume/f2m/zkcluster-f2m-3/datalog:/zookeeper-cluster/f2m/zkcluster-f2m-3/datalog
+        hostname: zkcluster-f2m-3
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_PORT: 14002
+            ZOO_DATA_DIR: /zookeeper-cluster/f2m/zkcluster-f2m-3/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/f2m/zkcluster-f2m-3/datalog
+            ZOO_SERVERS: server.1=zkcluster-f2m-1:12000:13000 server.2=zkcluster-f2m-2:12001:13001 server.3=zkcluster-f2m-3:12002:13002
+
+
