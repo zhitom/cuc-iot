@@ -1,0 +1,72 @@
+version: '3'
+services:
+    zkcluster-m2f-1:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12033:12033
+            - 12063:12063
+            - 12003:12003
+        volumes:
+            - /zookeeper-cluster-volume/m2f/bin:/zookeeper-cluster/m2f/bin
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-1/data:/zookeeper-cluster/m2f/zkcluster-m2f-1/data
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-1/datalog:/zookeeper-cluster/m2f/zkcluster-m2f-1/datalog
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-1/log:/zookeeper-cluster/m2f/zkcluster-m2f-1/log
+        hostname: zkcluster-m2f-1
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_PORT: 12003
+            ZOO_DATA_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-1/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-1/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-1/log
+            ZOO_SERVERS: server.1=zkcluster-m2f-1:12033:12063 server.2=zkcluster-m2f-2:12034:12064 server.3=zkcluster-m2f-3:12035:12065
+        entrypoint: /zookeeper-cluster/m2f/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+    zkcluster-m2f-2:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12034:12034
+            - 12064:12064
+            - 12004:12004
+        hostname: zkcluster-m2f-2
+        volumes:
+            - /zookeeper-cluster-volume/m2f/bin:/zookeeper-cluster/m2f/bin
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-2/data:/zookeeper-cluster/m2f/zkcluster-m2f-2/data
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-2/datalog:/zookeeper-cluster/m2f/zkcluster-m2f-2/datalog
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-2/log:/zookeeper-cluster/m2f/zkcluster-m2f-2/log
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_PORT: 12004
+            ZOO_DATA_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-2/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-2/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-2/log
+            ZOO_SERVERS: server.1=zkcluster-m2f-1:12033:12063 server.2=zkcluster-m2f-2:12034:12064 server.3=zkcluster-m2f-3:12035:12065
+        entrypoint: /zookeeper-cluster/m2f/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+    zkcluster-m2f-3:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12035:12035
+            - 12065:12065
+            - 12005:12005
+        volumes:
+            - /zookeeper-cluster-volume/m2f/bin:/zookeeper-cluster/m2f/bin
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-3/data:/zookeeper-cluster/m2f/zkcluster-m2f-3/data
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-3/datalog:/zookeeper-cluster/m2f/zkcluster-m2f-3/datalog
+            - /zookeeper-cluster-volume/m2f/zkcluster-m2f-3/log:/zookeeper-cluster/m2f/zkcluster-m2f-3/log
+        hostname: zkcluster-m2f-3
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_PORT: 12005
+            ZOO_DATA_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-3/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-3/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-3/log
+            ZOO_SERVERS: server.1=zkcluster-m2f-1:12033:12063 server.2=zkcluster-m2f-2:12034:12064 server.3=zkcluster-m2f-3:12035:12065
+        entrypoint: /zookeeper-cluster/m2f/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+

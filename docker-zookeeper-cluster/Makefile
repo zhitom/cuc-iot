@@ -6,7 +6,7 @@ IMGNAME?=zookeeper
 #当前操作的集群类型
 CLUSTERTYPE?=f2m
 SERVICENAME?=$(CLUSTERTYPE)-1
-PROJECTNAME?=p
+PROJECTNAME?=p$(CLUSTERTYPE)
 NETWORKNAME=$(PROJECTNAME)_default
 #容器里边的路径
 CLUSTERVOLUME?=/zookeeper-cluster/$(CLUSTERTYPE)
@@ -35,21 +35,21 @@ VOLUMEFULLNAME?=./$(VOLUMENAME)/$(CLUSTERTYPE)
 .PHONY : help build run start stop bash exe cli cliall localcli localcliall clean cleandata cleanlog distclean cluster
 help:
 	@echo "Targets:"
-	@echo "build  	    build image"
-	@echo "run      	run image to new container"
-	@echo "start    	start container"
-	@echo "stop     	stop container"
-	@echo "bash      	start bash with current container"
-	@echo "exe      	execute command with current container,use ARGCMD='yourcmd'"
-	@echo "cli    	 	start redis-cli using first redis-ip:port with current container,can use ARGCMD='yourcmd'"
-	@echo "cliall    	execute ARGCMD='yourcmd' within all containers"
-	@echo "localcli 	start redis-cli in localhost"
-	@echo "localcliall 	locally execute ARGCMD='yourcmd' within all containers"
-	@echo "clean    	delete container"
-	@echo "cleandata  	delete all data "
-	@echo "cleanlog 	delete all logs"
-	@echo "distclean 	delete image"
-	@echo "cluster   	create cluster,only once!"
+	@echo "build        build image"
+	@echo "run          run image to new container"
+	@echo "start        start container"
+	@echo "stop         stop container"
+	@echo "bash         start bash with current container"
+	@echo "exe          execute command with current container,use ARGCMD='yourcmd'"
+	@echo "cli          start redis-cli using first redis-ip:port with current container,can use ARGCMD='yourcmd'"
+	@echo "cliall       execute ARGCMD='yourcmd' within all containers"
+	@echo "localcli     start redis-cli in localhost"
+	@echo "localcliall  locally execute ARGCMD='yourcmd' within all containers"
+	@echo "clean        delete container"
+	@echo "cleandata    delete all data "
+	@echo "cleanlog     delete all logs"
+	@echo "distclean    delete image"
+	@echo "cluster      create cluster,only once!"
 	@echo "OPTION:"
 	@echo "CLUSTERTYPE=f2m(default) m2f info offline cb autorule infomgr acctout"
 
@@ -58,6 +58,7 @@ build:
 	$(DOCKCMD) pull zookeeper
 
 run:
+	mkdir -p $(VOLUMEFULLNAME)/bin/
 	cp ./build-data/*sh $(VOLUMEFULLNAME)/bin/
 	chmod 0777 $(VOLUMEFULLNAME)/bin/*.sh
 	@echo "==>zookeeper-cluster.$(CLUSTERTYPE),up services: start all containers..."; 
@@ -68,6 +69,7 @@ run:
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=30 $${svc}; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=30 $${svc}; \
+	cat $(VOLUMEFULLNAME)/$${svc}/log/* 2>/dev/null ; \
 	done
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
@@ -141,12 +143,7 @@ localcliall:
 	@echo "==>UnSupported!"
 
 clean:
-	@echo "down services: stop and rm all containers...";
-	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
-	svc="`echo $${svc}`"; \
-	echo "=============================================================="; \
-	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} zkServer.sh stop; \
-	done
+	@echo "down services: rm all containers...";
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) down; 
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
 	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
