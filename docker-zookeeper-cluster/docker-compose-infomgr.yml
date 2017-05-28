@@ -1,0 +1,72 @@
+version: '3'
+services:
+    zkcluster-infomgr-1:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12048:12048
+            - 12078:12078
+            - 12018:12018
+        volumes:
+            - /zookeeper-cluster-volume/infomgr/bin:/zookeeper-cluster/infomgr/bin
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-1/data:/zookeeper-cluster/infomgr/zkcluster-infomgr-1/data
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-1/datalog:/zookeeper-cluster/infomgr/zkcluster-infomgr-1/datalog
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-1/log:/zookeeper-cluster/infomgr/zkcluster-infomgr-1/log
+        hostname: zkcluster-infomgr-1
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_PORT: 12018
+            ZOO_DATA_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-1/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-1/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-1/log
+            ZOO_SERVERS: server.1=zkcluster-infomgr-1:12048:12078 server.2=zkcluster-infomgr-2:12049:12079 server.3=zkcluster-infomgr-3:12050:12080
+        entrypoint: /zookeeper-cluster/infomgr/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+    zkcluster-infomgr-2:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12049:12049
+            - 12079:12079
+            - 12019:12019
+        hostname: zkcluster-infomgr-2
+        volumes:
+            - /zookeeper-cluster-volume/infomgr/bin:/zookeeper-cluster/infomgr/bin
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-2/data:/zookeeper-cluster/infomgr/zkcluster-infomgr-2/data
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-2/datalog:/zookeeper-cluster/infomgr/zkcluster-infomgr-2/datalog
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-2/log:/zookeeper-cluster/infomgr/zkcluster-infomgr-2/log
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_PORT: 12019
+            ZOO_DATA_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-2/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-2/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-2/log
+            ZOO_SERVERS: server.1=zkcluster-infomgr-1:12048:12078 server.2=zkcluster-infomgr-2:12049:12079 server.3=zkcluster-infomgr-3:12050:12080
+        entrypoint: /zookeeper-cluster/infomgr/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+    zkcluster-infomgr-3:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12050:12050
+            - 12080:12080
+            - 12020:12020
+        volumes:
+            - /zookeeper-cluster-volume/infomgr/bin:/zookeeper-cluster/infomgr/bin
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-3/data:/zookeeper-cluster/infomgr/zkcluster-infomgr-3/data
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-3/datalog:/zookeeper-cluster/infomgr/zkcluster-infomgr-3/datalog
+            - /zookeeper-cluster-volume/infomgr/zkcluster-infomgr-3/log:/zookeeper-cluster/infomgr/zkcluster-infomgr-3/log
+        hostname: zkcluster-infomgr-3
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_PORT: 12020
+            ZOO_DATA_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-3/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-3/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/infomgr/zkcluster-infomgr-3/log
+            ZOO_SERVERS: server.1=zkcluster-infomgr-1:12048:12078 server.2=zkcluster-infomgr-2:12049:12079 server.3=zkcluster-infomgr-3:12050:12080
+        entrypoint: /zookeeper-cluster/infomgr/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+

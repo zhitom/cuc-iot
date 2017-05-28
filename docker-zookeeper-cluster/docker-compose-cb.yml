@@ -1,0 +1,72 @@
+version: '3'
+services:
+    zkcluster-cb-1:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12042:12042
+            - 12072:12072
+            - 12012:12012
+        volumes:
+            - /zookeeper-cluster-volume/cb/bin:/zookeeper-cluster/cb/bin
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-1/data:/zookeeper-cluster/cb/zkcluster-cb-1/data
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-1/datalog:/zookeeper-cluster/cb/zkcluster-cb-1/datalog
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-1/log:/zookeeper-cluster/cb/zkcluster-cb-1/log
+        hostname: zkcluster-cb-1
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_PORT: 12012
+            ZOO_DATA_DIR: /zookeeper-cluster/cb/zkcluster-cb-1/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/cb/zkcluster-cb-1/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/cb/zkcluster-cb-1/log
+            ZOO_SERVERS: server.1=zkcluster-cb-1:12042:12072 server.2=zkcluster-cb-2:12043:12073 server.3=zkcluster-cb-3:12044:12074
+        entrypoint: /zookeeper-cluster/cb/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+    zkcluster-cb-2:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12043:12043
+            - 12073:12073
+            - 12013:12013
+        hostname: zkcluster-cb-2
+        volumes:
+            - /zookeeper-cluster-volume/cb/bin:/zookeeper-cluster/cb/bin
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-2/data:/zookeeper-cluster/cb/zkcluster-cb-2/data
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-2/datalog:/zookeeper-cluster/cb/zkcluster-cb-2/datalog
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-2/log:/zookeeper-cluster/cb/zkcluster-cb-2/log
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_PORT: 12013
+            ZOO_DATA_DIR: /zookeeper-cluster/cb/zkcluster-cb-2/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/cb/zkcluster-cb-2/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/cb/zkcluster-cb-2/log
+            ZOO_SERVERS: server.1=zkcluster-cb-1:12042:12072 server.2=zkcluster-cb-2:12043:12073 server.3=zkcluster-cb-3:12044:12074
+        entrypoint: /zookeeper-cluster/cb/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+    zkcluster-cb-3:
+        image: zookeeper
+        restart: always
+        ports:
+            - 12044:12044
+            - 12074:12074
+            - 12014:12014
+        volumes:
+            - /zookeeper-cluster-volume/cb/bin:/zookeeper-cluster/cb/bin
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-3/data:/zookeeper-cluster/cb/zkcluster-cb-3/data
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-3/datalog:/zookeeper-cluster/cb/zkcluster-cb-3/datalog
+            - /zookeeper-cluster-volume/cb/zkcluster-cb-3/log:/zookeeper-cluster/cb/zkcluster-cb-3/log
+        hostname: zkcluster-cb-3
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_PORT: 12014
+            ZOO_DATA_DIR: /zookeeper-cluster/cb/zkcluster-cb-3/data
+            ZOO_DATA_LOG_DIR: /zookeeper-cluster/cb/zkcluster-cb-3/datalog
+            ZOO_LOG_DIR: /zookeeper-cluster/cb/zkcluster-cb-3/log
+            ZOO_SERVERS: server.1=zkcluster-cb-1:12042:12072 server.2=zkcluster-cb-2:12043:12073 server.3=zkcluster-cb-3:12044:12074
+        entrypoint: /zookeeper-cluster/cb/bin/docker-entrypoint.sh
+        command: ["zkServer.sh", "start"]
+
+
