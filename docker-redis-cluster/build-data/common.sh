@@ -1,7 +1,7 @@
 #!/bin/sh
 #set -x
 
-CheckRedisType()
+CheckClusterType()
 {
   if [ "x${1}" = 'xmq' ]; then
     shift
@@ -23,7 +23,7 @@ CheckRedisType()
   return 0
 }
 
-GetAllRedisType()
+GetAllClusterType()
 {
   echo "mq devinfo session rating ratingcdr dupcheck autorule"
 }

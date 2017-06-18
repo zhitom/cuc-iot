@@ -17,10 +17,11 @@ services:
           KAFKA_ADVERTISED_PORT: 9092
           KAFKA_ZOOKEEPER_CONNECT: zookeeper1:12000,zookeeper2:12001,zookeeper3:12002
           KAFKA_LOG_DIRS: /kafka-cluster/f2m/kafkacluster-f2m-1/datalog
+          KAFKA_LISTENERS: PLAINTEXT://127.0.0.1:9092
           #预定义的主题：topic:partitions:replicas:cleanup.policy
           #cleanup.policy=delete(直接删除),compact(同一个key压缩合并，仅保留最新版本数据)
           KAFKA_CREATE_TOPICS: "Topic1:1:3,Topic2:1:1:compact"
-        command: ["/kafka-cluster/f2m/bin/mykafka.sh","start"]
+        command: ["/kafka-cluster/f2m/bin/mykafka.sh","f2m","start"]
         #external_links 默认必须是同一个网段
         external_links:
             - pf2m_zkcluster-f2m-1_1:zookeeper1

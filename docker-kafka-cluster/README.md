@@ -91,7 +91,7 @@
 
 make的个性化选项：
 
-    - REDISTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule
+    - CLUSTERTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule
     - RUNOPT=--net=host(默认) 该选择主要方便容器和宿主机双向通信，因为redis客户端集群场景下会切换ip，否则只能在容器里边使用客户端了。
 
 # 操作方法
@@ -161,9 +161,9 @@ To need more redis instances
     # run this or other same of up:
     make run
 
-To Another RedisType:
+To Another ClusterType:
 
     #mq devinfo session rating ratingcdr dupcheck autorule
-    make REDISTYPE="devinfo" ...  #...等同上面make后面的命令
+    make CLUSTERTYPE="devinfo" ...  #...等同上面make后面的命令
 
 

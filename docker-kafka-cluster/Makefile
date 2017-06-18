@@ -18,7 +18,7 @@ CONTAINERINDEX?=1
 DOCKCMD?=docker
 DOCKCOMPCMD?=docker-compose -f docker-compose-$(CLUSTERTYPE).yml
 #外面透传给容器或客户端的命令
-CMD?="env"
+CMD?=""
 #######################################################
 #下面的根据本机情况进行修改
 #######################################################
@@ -98,8 +98,8 @@ stop:
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
-	echo $(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh stop ; \
-	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh stop; \
+	echo $(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) stop ; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) stop; \
 	done
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) stop; 
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
@@ -119,8 +119,8 @@ exe:
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CMD); \
-	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CMD); \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) $(CMD); \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) $(CMD); \
 	done
 
 cli:

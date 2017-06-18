@@ -18,7 +18,7 @@ CONTAINERINDEX?=1
 DOCKCMD?=docker
 DOCKCOMPCMD?=docker-compose -f docker-compose-$(CLUSTERTYPE).yml
 #外面透传给容器或客户端的命令
-ARGCMD?="env"
+CMD?="env"
 #######################################################
 #下面的根据本机情况进行修改
 #######################################################
@@ -40,11 +40,11 @@ help:
 	@echo "start        start container"
 	@echo "stop         stop container"
 	@echo "bash         start bash with current container"
-	@echo "exe          execute command with current container,use ARGCMD='yourcmd'"
-	@echo "cli          start redis-cli using first redis-ip:port with current container,can use ARGCMD='yourcmd'"
-	@echo "cliall       execute ARGCMD='yourcmd' within all containers"
+	@echo "exe          execute command with current container,use CMD='yourcmd'"
+	@echo "cli          start redis-cli using first redis-ip:port with current container,can use CMD='yourcmd'"
+	@echo "cliall       execute CMD='yourcmd' within all containers"
 	@echo "localcli     start redis-cli in localhost"
-	@echo "localcliall  locally execute ARGCMD='yourcmd' within all containers"
+	@echo "localcliall  locally execute CMD='yourcmd' within all containers"
 	@echo "clean        delete container"
 	@echo "cleandata    delete all data "
 	@echo "cleanlog     delete all logs"
@@ -54,8 +54,8 @@ help:
 	@echo "CLUSTERTYPE=f2m(default) m2f info offline cb autorule infomgr acctout"
 
 build:
-	@echo "Use directly OFFICIAL zookeeper image: https://hub.docker.com/_/zookeeper/"
-	$(DOCKCMD) pull zookeeper
+	@echo "Use directly OFFICIAL image: docker pull $(IMGNAME)"
+	$(DOCKCMD) pull $(IMGNAME)
 
 run:
 	mkdir -p $(VOLUMEFULLNAME)/bin/
@@ -75,8 +75,8 @@ run:
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCMD) exec $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) ps -ef; \
-	$(DOCKCMD) exec $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) ps -ef; \
+	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ps -ef; \
+	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ps -ef; \
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ifconfig; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ifconfig; \
 	echo "==>"$(DOCKCMD) port $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX); \
@@ -119,8 +119,8 @@ exe:
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} $(ARGCMD); \
-	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} $(ARGCMD); \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CMD); \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CMD); \
 	done
 
 cli:
@@ -161,10 +161,10 @@ cleandata:
 	exit 111; \
 	fi; \
 	done
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/* 2>/dev/null
 
 cleanlog:
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/* 2>/dev/null
 
 distclean:
 	$(DOCKCMD) rmi $(IMGNAME)

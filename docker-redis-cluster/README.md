@@ -78,11 +78,11 @@
     - start     start container
     - stop      stop container
     - bash      start bash with current container
-    - exe      	execute command with current container,use ARGCMD='yourcmd'
+    - exe      	execute command with current container,use CMD='yourcmd'
     - cli       start redis-cli using first redis-ip:port instance container
-    - cliall    	execute ARGCMD='yourcmd' within all containers
+    - cliall    	execute CMD='yourcmd' within all containers
     - localcli  start redis-cli in localhost
-    - localcliall locally execute ARGCMD='yourcmd' within all containers
+    - localcliall locally execute CMD='yourcmd' within all containers
     - clean     delete container
     - cleandata delete all data
     - cleanlog  delete all logs
@@ -91,7 +91,7 @@
 
 make的个性化选项：
 
-    - REDISTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule
+    - CLUSTERTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule
     - RUNOPT=--net=host(默认) 该选择主要方便容器和宿主机双向通信，因为redis客户端集群场景下会切换ip，否则只能在容器里边使用客户端了。
 
 # 操作方法
@@ -134,8 +134,8 @@ To login on some container with bash:
 
 To Execute command on all container:
 
-    make exe ARGCMD='ps -ef'
-    make exe ARGCMD='ls -l /redis-cluster/*'
+    make exe CMD='ps -ef'
+    make exe CMD='ls -l /redis-cluster/*'
 
 To execute redis-cli tool in one container:
 
@@ -145,12 +145,12 @@ To execute redis-cli tool in one container:
     make localcli
 
     #print cluster info
-    make cli ARGCMD='cluster info'
+    make cli CMD='cluster info'
 
 To execute redis-cli command once in all container:
 
     #print redis instance's info
-    make cliall ARGCMD='info'
+    make cliall CMD='info'
 
 ##高级操作
 
@@ -161,9 +161,9 @@ To need more redis instances
     # run this or other same of up:
     make run
 
-To Another RedisType:
+To Another ClusterType:
 
     #mq devinfo session rating ratingcdr dupcheck autorule
-    make REDISTYPE="devinfo" ...  #...等同上面make后面的命令
+    make CLUSTERTYPE="devinfo" ...  #...等同上面make后面的命令
 
 

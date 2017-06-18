@@ -1,26 +1,26 @@
 . `dirname $0`/common.sh
 
 ISLIST="$1";shift
-REDISTYPE="$1";shift
+CLUSTERTYPE="$1";shift
 
-CheckRedisType ${REDISTYPE}
+CheckClusterType ${CLUSTERTYPE}
 
 if [ $? -ne 0 ]; then
-  GetAllRedisType
+  GetAllClusterType
   exit 110
 fi
 
-REDISVOLUME="/redis-cluster/${REDISTYPE}"
+CLUSTERVOLUME="/redis-cluster/${CLUSTERTYPE}"
 REDISPATH="${REDIS_HOME}"  #/redis/src
 
-FIRSTPORT=`cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|head -1`
+FIRSTPORT=`cat ${CLUSTERVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|head -1`
 FIRSTIP=`echo ${FIRSTPORT}|awk -F: '{print $1}'`
 FIRSTP=`echo ${FIRSTPORT}|awk -F: '{print $2}'`
 
 if [ ${ISLIST} -eq 1 ]; then
     echo "==========================================================================="
     echo "Redis Instances:"
-    cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
+    cat ${CLUSTERVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
     do
         if [ "x${ipport}" = "x" ]; then
             continue;
@@ -39,7 +39,7 @@ if [ ${ISLIST} -eq 1 ]; then
     echo "==========================================================================="
     ${REDISPATH}/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP} cluster info
 else
-    cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
+    cat ${CLUSTERVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
     do
         if [ "x${ipport}" = "x" ]; then
             continue;
@@ -61,7 +61,7 @@ else
 fi
 echo "${REDISPATH}/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP}" $@
 exec ${REDISPATH}/redis-cli -c -h ${FIRSTIP} -p ${FIRSTP} $@
-#cat ${REDISVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
+#cat ${CLUSTERVOLUME}/data/redis-cluster.ip.port.all 2>/dev/null|while read ipport
 #do
 #    if [ "x${ipport}" = "x" ]; then
 #        continue;

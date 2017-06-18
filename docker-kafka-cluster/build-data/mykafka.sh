@@ -1,25 +1,36 @@
 #!/bin/sh
 
-cmd="$1"
-pidfile=${KAFKA_LOG_DIRS}/kafka.pid
+. `dirname $0`/common.sh
 
-if [ "x$1" = "x" ]; then
+CLUSTERTYPE="$1";shift
+CMD="$1";
+
+CheckClusterType ${CLUSTERTYPE}
+
+pidfile=${KAFKA_LOG_DIRS}/kafka.pid
+CLUSTERVOLUME="/kafka-cluster/${CLUSTERTYPE}"
+
+if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
     echo "need one param!"
     echo "start       start kafka-server"
     echo "stop        stop kafka-server"
     echo "info        list kafka-topics,kafka-brokers"
-    exit 10
-elif [ "x$1" = "xinfo" ]; then
+    echo "CLUSTERTYPE:`GetAllClusterType`"
+    exit 0
+elif [ "x${CMD}" = "xinfo" ]; then
     #$KAFKA_HOME/bin/kafka-topics.sh --list --zookeeper  $KAFKA_ZOOKEEPER_CONNECT
     echo "=================================================="
     echo "kafka-topics:"
     $KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/topics
     echo "=================================================="
-    echo "kafka-brokers:"
+    echo "kafka-brokers-advertise_ip:port=${KAFKA_ADVERTISED_HOST_NAME}:${KAFKA_ADVERTISED_PORT}"
+    echo "kafka-brokers-localhost_ip:port=127.0.0.1:${KAFKA_PORT}"
+    echo "kafka-brokers-id==>"
     $KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/ids
-elif [ "x$1" = "xstart" ]; then
-    /kafka-cluster/f2m/bin/start-kafka.sh ${pidfile}
-elif [ "x$1" = "xstop" ]; then
+    echo "kafka-brokers-log==>`grep -w 'Registered broker' ${KAFKA_HOME}/logs/server.log* `"
+elif [ "x${CMD}" = "xstart" ]; then
+    ${CLUSTERVOLUME}/bin/start-kafka.sh ${pidfile}
+elif [ "x${CMD}" = "xstop" ]; then
     #$KAFKA_HOME/bin/kafka-server-stop.sh
     PIDS=`cat ${pidfile} 2>/dev/null`
     echo "stop kafka server pids=$PIDS"
@@ -43,5 +54,7 @@ elif [ "x$1" = "xstop" ]; then
     fi
     rm -f ${pidfile} 2>/dev/null
     exit 0
+else
+    exec $@
 fi
 
