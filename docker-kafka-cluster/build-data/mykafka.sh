@@ -10,6 +10,13 @@ CheckClusterType ${CLUSTERTYPE}
 pidfile=${KAFKA_LOG_DIRS}/kafka.pid
 CLUSTERVOLUME="/kafka-cluster/${CLUSTERTYPE}"
 
+#时区修改
+if [ "x`cat /etc/timezone`" != "xAsia/Shanghai" ]; then
+    ln -sf ${CLUSTERVOLUME}/bin/TZ_Shanghai /usr/share/zoneinfo/Asia/Shanghai
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 
+    echo "Asia/Shanghai" > /etc/timezone
+fi
+
 if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
     echo "need one param!"
     echo "start       start kafka-server"
@@ -21,13 +28,55 @@ elif [ "x${CMD}" = "xinfo" ]; then
     #$KAFKA_HOME/bin/kafka-topics.sh --list --zookeeper  $KAFKA_ZOOKEEPER_CONNECT
     echo "=================================================="
     echo "kafka-topics:"
+    echo "==>$KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/topics"
     $KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/topics
+    echo "==>$KAFKA_HOME/bin/kafka-topics.sh --list --zookeeper $KAFKA_ZOOKEEPER_CONNECT"
+    TOPICLIST=$(eval "$KAFKA_HOME/bin/kafka-topics.sh --list --zookeeper $KAFKA_ZOOKEEPER_CONNECT|grep -v ^__")
+    echo TOPICLIST="${TOPICLIST}"
+    for topic in ${TOPICLIST}
+    do
+        echo "--------------------------------------------"
+        echo "TOPIC [${topic}] Detail:"
+        echo "--------------------------------------------"
+        echo "==>kafka-topics.sh --zookeeper $KAFKA_ZOOKEEPER_CONNECT --describe --topic ${topic}"
+        kafka-topics.sh --zookeeper $KAFKA_ZOOKEEPER_CONNECT --describe --topic ${topic}
+    done
     echo "=================================================="
-    echo "kafka-brokers-advertise_ip:port=${KAFKA_ADVERTISED_HOST_NAME}:${KAFKA_ADVERTISED_PORT}"
-    echo "kafka-brokers-localhost_ip:port=127.0.0.1:${KAFKA_PORT}"
-    echo "kafka-brokers-id==>"
-    $KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/ids
-    echo "kafka-brokers-log==>`grep -w 'Registered broker' ${KAFKA_HOME}/logs/server.log* `"
+    echo "kafka-brokers:"
+    if [[ -z "$KAFKA_ADVERTISED_HOST_NAME" && -n "$HOSTNAME_COMMAND" ]]; then
+        export KAFKA_ADVERTISED_HOST_NAME=$(eval $HOSTNAME_COMMAND)
+    fi
+
+    if [[ -z "$KAFKA_HOST_NAME" ]]; then
+        export KAFKA_HOST_NAME=${KAFKA_ADVERTISED_HOST_NAME}
+    fi
+
+    if [[ -z "$KAFKA_ADVERTISED_HOST_NAME" ]]; then
+        #export KAFKA_ADVERTISED_HOST_NAME=$(eval "ifconfig eth0|grep -w -i 'inet addr'|awk -F: '{print \$2}'|awk '{print \$1}'")
+        export KAFKA_ADVERTISED_HOST_NAME=$(eval "hostname")
+    fi
+
+    if [[ -z "$KAFKA_ADVERTISED_LISTENERS" ]]; then
+        export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${KAFKA_ADVERTISED_HOST_NAME}:${KAFKA_ADVERTISED_PORT}"
+        unset KAFKA_ADVERTISED_HOST_NAME
+        unset KAFKA_ADVERTISED_PORT
+    fi
+    echo "kafka-brokers-advertise_ip:port=${KAFKA_ADVERTISED_LISTENERS}"
+    echo "kafka-brokers-localhost_ip:port=PLAINTEXT://0.0.0.0:${KAFKA_PORT}"
+    echo "kafka-brokers-id==> $KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/ids"
+    
+    BROKERLIST=$(eval "$KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/ids|sed -n '/WatchedEvent state:/{n;p}'|awk '{print substr(\$0,2,length(\$0)-2)}'|tr ',' ' '")
+    echo BROKERLIST="${BROKERLIST}"
+    for broker in ${BROKERLIST}
+    do
+        echo "--------------------------------------------"
+        echo "BROKER [${broker}] Detail:"
+        echo "--------------------------------------------"
+        echo "==>$KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/ids/${broker}"
+        $KAFKA_HOME/bin/zookeeper-shell.sh  $KAFKA_ZOOKEEPER_CONNECT ls /brokers/ids/${broker}
+    done
+    LOGFILE="${CLUSTERVOLUME}/`hostname`/log/server.log*"
+    echo "kafka-brokers-log==>`grep -w 'Registered broker' ${LOGFILE}`"
 elif [ "x${CMD}" = "xstart" ]; then
     ${CLUSTERVOLUME}/bin/start-kafka.sh ${pidfile}
 elif [ "x${CMD}" = "xstop" ]; then

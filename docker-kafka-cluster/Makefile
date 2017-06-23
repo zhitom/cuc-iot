@@ -15,10 +15,16 @@ CONTAINERCLUSTER?=kafka-cluster.$(CLUSTERTYPE).cluster
 #服务实例编号，暂支持1个，默认从1开始
 CONTAINERINDEX?=1
 #容器命令，某些可能需要加sudo
+#docker-machine所在机器或虚拟机的机器名、ip
+VM=${DOCKER_MACHINE_NAME-default}
+DOCKER_MACHINE=docker-machine
+IP=$(shell $(DOCKER_MACHINE) ip $(VM))
+DOCKCOMPCMD_ENVFILE=.env
 DOCKCMD?=docker
 DOCKCOMPCMD?=docker-compose -f docker-compose-$(CLUSTERTYPE).yml
 #外面透传给容器或客户端的命令
 CMD?=""
+NOCONFIRM?=n
 #######################################################
 #下面的根据本机情况进行修改
 #######################################################
@@ -58,6 +64,8 @@ build:
 	$(DOCKCMD) pull $(IMGNAME)
 
 run:
+	@echo "==>prepare shell ..."
+	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
 	mkdir -p $(VOLUMEFULLNAME)/bin/
 	cp ./build-data/*sh $(VOLUMEFULLNAME)/bin/
 	chmod 0777 $(VOLUMEFULLNAME)/bin/*.sh
@@ -68,7 +76,7 @@ run:
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=30 $${svc}; \
-	$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=30 $${svc}; \
+	$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=100 $${svc}; \
 	done
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
@@ -88,21 +96,36 @@ run:
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} netstat -natp; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} netstat -natp; \
 	done
-	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
-	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
-	
-start:run
-
-stop:
-	@echo "down services: stop all containers...";
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
-	echo $(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) stop ; \
+	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) info; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) info; \
+	done
+	@echo "==>services status ..."
+	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
+	$(DOCKCMD) ps -f name="$(PROJECTNAME)_*";
+	@echo "==>network status ..."
+	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
+	#rm -rf  $(DOCKCOMPCMD_ENVFILE)
+
+start:run
+
+stop:
+	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
+	@echo "==>down services: stop all containers...";
+	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
+	svc="`echo $${svc}`"; \
+	echo "=============================================================="; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) stop ; \
 	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) stop; \
 	done
+	@echo "==>services stop ..."
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) stop; 
+	@echo "==>services status ..."
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
+	#rm -rf  $(DOCKCOMPCMD_ENVFILE)
 
 bash:
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
@@ -136,15 +159,23 @@ localcliall:
 	@echo "==>UnSupported!"
 
 clean:
-	@echo "down services: rm all containers...";
+	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
+	@echo "==>down services: rm all containers...";
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) down; 
+	@echo "==>services status ...";
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
+	@echo "==>network status ...";
 	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
+	rm -rf  $(DOCKCOMPCMD_ENVFILE)
 
 cleandata:
 	@while [ 1 ];do \
 	echo "Cleandata Confirmed:y/n?"; \
+	if [ "x$(NOCONFIRM)" = "xy" ]; then \
+	y="y"; \
+	else \
 	read y; \
+	fi; \
 	if [ "x$$y" = "xy" ]; then \
 	break; \
 	elif [ "x$$y" = "x" ]; then \
@@ -160,7 +191,9 @@ cleanlog:
 	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/* 2>/dev/null
 
 distclean:
+	@echo "==>rmi image: $(IMGNAME)";
 	$(DOCKCMD) rmi $(IMGNAME)
+	@echo "==>list image:";
 	$(DOCKCMD) images;
 
 clusterinfo:
@@ -168,7 +201,6 @@ clusterinfo:
 
 cluster:
 	@echo "==>UnSupported!"
-
 
 
 

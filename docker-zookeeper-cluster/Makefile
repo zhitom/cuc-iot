@@ -19,6 +19,7 @@ DOCKCMD?=docker
 DOCKCOMPCMD?=docker-compose -f docker-compose-$(CLUSTERTYPE).yml
 #外面透传给容器或客户端的命令
 CMD?="env"
+NOCONFIRM?=n
 #######################################################
 #下面的根据本机情况进行修改
 #######################################################
@@ -151,7 +152,11 @@ clean:
 cleandata:
 	@while [ 1 ];do \
 	echo "Cleandata Confirmed:y/n?"; \
+	if [ "x$(NOCONFIRM)" = "xy" ]; then \
+	y="y"; \
+	else \
 	read y; \
+	fi; \
 	if [ "x$$y" = "xy" ]; then \
 	break; \
 	elif [ "x$$y" = "x" ]; then \

@@ -32,8 +32,25 @@ if [[ -z "$KAFKA_ADVERTISED_HOST_NAME" && -n "$HOSTNAME_COMMAND" ]]; then
     export KAFKA_ADVERTISED_HOST_NAME=$(eval $HOSTNAME_COMMAND)
 fi
 
+if [[ -z "$KAFKA_HOST_NAME" ]]; then
+    export KAFKA_HOST_NAME=${KAFKA_ADVERTISED_HOST_NAME}
+fi
+
+if [[ -z "$KAFKA_ADVERTISED_HOST_NAME" ]]; then
+    #export KAFKA_ADVERTISED_HOST_NAME=$(eval "ifconfig eth0|grep -w -i 'inet addr'|awk -F: '{print \$2}'|awk '{print \$1}'")
+    export KAFKA_ADVERTISED_HOST_NAME=$(eval "hostname")
+fi
+
+if [[ -z "$KAFKA_ADVERTISED_LISTENERS" ]]; then
+    export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${KAFKA_ADVERTISED_HOST_NAME}:${KAFKA_ADVERTISED_PORT}"
+    unset KAFKA_ADVERTISED_HOST_NAME
+    unset KAFKA_ADVERTISED_PORT
+    echo KAFKA_ADVERTISED_LISTENERS="${KAFKA_ADVERTISED_LISTENERS}"
+fi
+
 for VAR in `env`
 do
+  echo "ENV_VAR:$VAR=${!env_var}"
   if [[ $VAR =~ ^KAFKA_ && ! $VAR =~ ^KAFKA_HOME ]]; then
     kafka_name=`echo "$VAR" | sed -r "s/KAFKA_(.*)=.*/\1/g" | tr '[:upper:]' '[:lower:]' | tr _ .`
     env_var=`echo "$VAR" | sed -r "s/(.*)=.*/\1/g"`
