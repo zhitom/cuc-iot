@@ -1,21 +1,23 @@
 #!/bin/sh
 #set -x
 
+ALLCLUSTTYPES="f2m m2f info"
+
 CheckClusterType()
 {
-  if [ "x${1}" = 'xf2m' ]; then
-    shift
-  elif [ "x${1}" = 'xm2f' ]; then
-    shift
-  else
-    return 100
-  fi
-  return 0
+  for t in ${ALLCLUSTTYPES}
+  do
+       if [ "x$t" = "x${1}" ]; then
+          shift;
+          return 0
+       fi
+  done
+  return 100
 }
 
 GetAllClusterType()
 {
-  echo "f2m m2f"
+  echo ${ALLCLUSTTYPES}
 }
 
 

@@ -3,11 +3,18 @@ services:
     kafkacluster-f2m-1:
         image: wurstmeister/kafka
         ports:
-          - "9092:9092"
+          - "11000:11000"
         volumes:
             - /kafka-cluster-volume/f2m/bin:/kafka-cluster/f2m/bin
-            - /kafka-cluster-volume/f2m/kafkacluster-f2m-1/datalog:/kafka-cluster/f2m/kafkacluster-f2m-1/datalog
+            #这里没有配置Kafka的持久化存储，因为:
+            #1.每个Topic包含一个或多个partition，如果单个broker宕调不会影响集群，并且当broker重建后会自动同步数据，速度非常快。
+            #2.virtualbox下挂载顶级目录kafka-cluster-volume的方式，
+            #可能不支持多个容器挂载同一个属于该顶级目录下的多个子目录（可能是内部使用了mmap的关系，或和virtualbox的共享目录实现机制有关），
+            #3.多个子目录分别进行virtualbox挂载可能可以实现，未测试
+            #暂不共享，后续改成持久化容器试试
+            #- /kafka-cluster-volume/f2m/kafkacluster-f2m-1/datalog:/kafka-cluster/f2m/kafkacluster-f2m-1/datalog
             - /kafka-cluster-volume/f2m/kafkacluster-f2m-1/log:/kafka-cluster/f2m/kafkacluster-f2m-1/log
+            - /proc:/writable-proc
         #  - /var/run/docker.sock:/var/run/docker.sock
         hostname: kafkacluster-f2m-1
         environment:
@@ -18,17 +25,18 @@ services:
           #进程输出的日志路径
           LOG_DIR: /kafka-cluster/f2m/kafkacluster-f2m-1/log
           #侦听客户端的本地端口
-          KAFKA_PORT: 9092
+          KAFKA_PORT: 11000
           #ADVERTISED_HOST_NAME会注册到ZK，提供给外部客户端连接broker使用
           #用于拼凑KAFKA_ADVERTISED_LISTENERS变量：KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://172.18.0.5:9092
-          KAFKA_ADVERTISED_PORT: 9092
+          KAFKA_ADVERTISED_PORT: 11000
           KAFKA_ZOOKEEPER_CONNECT: zookeeper1:12000,zookeeper2:12001,zookeeper3:12002
           #kafka数据日志路径
           KAFKA_LOG_DIRS: /kafka-cluster/f2m/kafkacluster-f2m-1/datalog
-          KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+          KAFKA_LISTENERS: PLAINTEXT://:11000
           #预定义的主题：topic:partitions:replicas:cleanup.policy
           #cleanup.policy=delete(直接删除),compact(同一个key压缩合并，仅保留最新版本数据)
           KAFKA_CREATE_TOPICS: "TopicTest:3:3"
+          KAFKA_LOG_INDEX_SIZE_MAX_BYTES: 1048576
         command: ["/kafka-cluster/f2m/bin/mykafka.sh","f2m","start"]
         #external_links 默认必须是同一个网段
         external_links:
@@ -38,34 +46,25 @@ services:
     kafkacluster-f2m-2:
         image: wurstmeister/kafka
         ports:
-          - "9093:9093"
+          - "11001:11001"
         volumes:
             - /kafka-cluster-volume/f2m/bin:/kafka-cluster/f2m/bin
-            - /kafka-cluster-volume/f2m/kafkacluster-f2m-2/datalog:/kafka-cluster/f2m/kafkacluster-f2m-2/datalog
+            #- /kafka-cluster-volume/f2m/kafkacluster-f2m-2/datalog:/kafka-cluster/f2m/kafkacluster-f2m-2/datalog
             - /kafka-cluster-volume/f2m/kafkacluster-f2m-2/log:/kafka-cluster/f2m/kafkacluster-f2m-2/log
-        #  - /var/run/docker.sock:/var/run/docker.sock
+            - /proc:/writable-proc
         hostname: kafkacluster-f2m-2
         environment:
-          #jvm
           KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
-          #brokerid
           KAFKA_BROKER_ID: 2
-          #进程输出的日志路径
           LOG_DIR: /kafka-cluster/f2m/kafkacluster-f2m-2/log
-          #侦听客户端的本地端口
-          KAFKA_PORT: 9093
-          #ADVERTISED会注册到ZK，提供给外部客户端连接broker使用
-          #用于拼凑KAFKA_ADVERTISED_LISTENERS变量：KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://172.18.0.5:9092
-          KAFKA_ADVERTISED_PORT: 9093
+          KAFKA_PORT: 11001
+          KAFKA_ADVERTISED_PORT: 11001
           KAFKA_ZOOKEEPER_CONNECT: zookeeper1:12000,zookeeper2:12001,zookeeper3:12002
-          #kafka数据日志路径
           KAFKA_LOG_DIRS: /kafka-cluster/f2m/kafkacluster-f2m-2/datalog
-          KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
-          #预定义的主题：topic:partitions:replicas:cleanup.policy
-          #cleanup.policy=delete(直接删除),compact(同一个key压缩合并，仅保留最新版本数据)
+          KAFKA_LISTENERS: PLAINTEXT://:11001
           KAFKA_CREATE_TOPICS: "TopicTest:3:3"
+          KAFKA_LOG_INDEX_SIZE_MAX_BYTES: 1048576
         command: ["/kafka-cluster/f2m/bin/mykafka.sh","f2m","start"]
-        #external_links 默认必须是同一个网段
         external_links:
             - pf2m_zkcluster-f2m-1_1:zookeeper1
             - pf2m_zkcluster-f2m-2_1:zookeeper2
@@ -73,34 +72,25 @@ services:
     kafkacluster-f2m-3:
         image: wurstmeister/kafka
         ports:
-          - "9094:9094"
+          - "11002:11002"
         volumes:
             - /kafka-cluster-volume/f2m/bin:/kafka-cluster/f2m/bin
-            - /kafka-cluster-volume/f2m/kafkacluster-f2m-3/datalog:/kafka-cluster/f2m/kafkacluster-f2m-3/datalog
+            #- /kafka-cluster-volume/f2m/kafkacluster-f2m-3/datalog:/kafka-cluster/f2m/kafkacluster-f2m-3/datalog
             - /kafka-cluster-volume/f2m/kafkacluster-f2m-3/log:/kafka-cluster/f2m/kafkacluster-f2m-3/log
-        #  - /var/run/docker.sock:/var/run/docker.sock
+            - /proc:/writable-proc
         hostname: kafkacluster-f2m-3
         environment:
-          #jvm
           KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
-          #brokerid
           KAFKA_BROKER_ID: 3
-          #进程输出的日志路径
           LOG_DIR: /kafka-cluster/f2m/kafkacluster-f2m-3/log
-          #侦听客户端的本地端口
-          KAFKA_PORT: 9094
-          #ADVERTISED会注册到ZK，提供给外部客户端连接broker使用
-          #用于拼凑KAFKA_ADVERTISED_LISTENERS变量：KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://172.18.0.5:9092
-          KAFKA_ADVERTISED_PORT: 9094
+          KAFKA_PORT: 11002
+          KAFKA_ADVERTISED_PORT: 11002
           KAFKA_ZOOKEEPER_CONNECT: zookeeper1:12000,zookeeper2:12001,zookeeper3:12002
-          #kafka数据日志路径
           KAFKA_LOG_DIRS: /kafka-cluster/f2m/kafkacluster-f2m-3/datalog
-          KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9094
-          #预定义的主题：topic:partitions:replicas:cleanup.policy
-          #cleanup.policy=delete(直接删除),compact(同一个key压缩合并，仅保留最新版本数据)
+          KAFKA_LISTENERS: PLAINTEXT://:11002
           KAFKA_CREATE_TOPICS: "TopicTest:3:3"
+          KAFKA_LOG_INDEX_SIZE_MAX_BYTES: 1048576
         command: ["/kafka-cluster/f2m/bin/mykafka.sh","f2m","start"]
-        #external_links 默认必须是同一个网段
         external_links:
             - pf2m_zkcluster-f2m-1_1:zookeeper1
             - pf2m_zkcluster-f2m-2_1:zookeeper2

@@ -60,8 +60,8 @@ build:
 
 run:
 	mkdir -p $(VOLUMEFULLNAME)/bin/
-	cp ./build-data/*sh $(VOLUMEFULLNAME)/bin/
-	chmod 0777 $(VOLUMEFULLNAME)/bin/*.sh
+	cp ./build-data/* $(VOLUMEFULLNAME)/bin/
+	chmod 0777 $(VOLUMEFULLNAME)/bin/*
 	@echo "==>zookeeper-cluster.$(CLUSTERTYPE),up services: start all containers..."; 
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) up -d --no-recreate; 
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
@@ -76,8 +76,8 @@ run:
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ps -ef; \
-	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ps -ef; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) ps -ef; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) ps -ef; \
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ifconfig; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ifconfig; \
 	echo "==>"$(DOCKCMD) port $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX); \
@@ -150,10 +150,10 @@ clean:
 	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
 
 cleandata:
-	@while [ 1 ];do \
+	@while [ 1 ]; do \
 	echo "Cleandata Confirmed:y/n?"; \
 	if [ "x$(NOCONFIRM)" = "xy" ]; then \
-	y="y"; \
+	y="y";echo $$y; \
 	else \
 	read y; \
 	fi; \
@@ -166,10 +166,10 @@ cleandata:
 	exit 111; \
 	fi; \
 	done
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/.* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/.* 2>/dev/null||echo
 
 cleanlog:
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/.* 2>/dev/null||echo
 
 distclean:
 	$(DOCKCMD) rmi $(IMGNAME)

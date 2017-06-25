@@ -4,24 +4,76 @@
 
 CLUSTERTYPE="$1";shift
 CMD="$1";
+CMDOPT="$2";
 
 CheckClusterType ${CLUSTERTYPE}
 
 pidfile=${KAFKA_LOG_DIRS}/kafka.pid
 CLUSTERVOLUME="/kafka-cluster/${CLUSTERTYPE}"
+hostinfo=`hostname`
+istrace=0
 
 #时区修改
-if [ "x`cat /etc/timezone`" != "xAsia/Shanghai" ]; then
+tzinfo=""
+if [ -f /etc/timezone ]; then
+    tzinfo="`cat /etc/timezone`"
+fi
+if [ "x$tzinfo" != "xAsia/Shanghai" ]; then
+    mkdir -p /usr/share/zoneinfo/Asia
     ln -sf ${CLUSTERVOLUME}/bin/TZ_Shanghai /usr/share/zoneinfo/Asia/Shanghai
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 
     echo "Asia/Shanghai" > /etc/timezone
 fi
+
+#map映射空间大小修改，65536的4倍
+MAXMAPCOUNT=$(eval "sysctl vm.max_map_count |awk '{print \$3}'")
+if [ "x${MAXMAPCOUNT}" != "x262144" ]; then
+    echo "vm.max_map_count=262144" >>/etc/sysctl.conf
+fi
+#sysctl -w vm.max_map_count=262144,文件系统不可写，会报错
+echo "262144" > /writable-proc/sys/vm/max_map_count
+
+#数据目录兼容性处理
+if [ ! -d ${KAFKA_LOG_DIRS} ]; then
+    mkdir -p ${KAFKA_LOG_DIRS}
+fi
+if [ ! -d ${KAFKA_LOG_DIRS}/${hostinfo}/datalog ]; then
+    mkdir -p ${KAFKA_LOG_DIRS}/${hostinfo}/datalog
+fi
+if [ ! -d ${KAFKA_LOG_DIRS}/${hostinfo}/log ]; then
+    mkdir -p ${KAFKA_LOG_DIRS}/${hostinfo}/log
+fi
+
+#处理命令选项
+if [ "x${CMDOPT}" = "xon" ]; then
+    istrace=1
+fi
+if [ "x${CMD}" = "xstart" ]; then
+    istrace=0
+fi
+
+logonoff()
+{
+    if [ $1 -eq 1 ]; then
+        sed 's/INFO/TRACE/g' $KAFKA_HOME/config/log4j.properties > $KAFKA_HOME/config/log4j.properties.1
+        mv $KAFKA_HOME/config/log4j.properties.1 $KAFKA_HOME/config/log4j.properties
+        sed 's/INFO/TRACE/g' $KAFKA_HOME/config/tools-log4j.properties > $KAFKA_HOME/config/tools-log4j.properties.1
+        mv $KAFKA_HOME/config/tools-log4j.properties.1 $KAFKA_HOME/config/tools-log4j.properties
+    else
+        sed 's/TRACE/INFO/g' $KAFKA_HOME/config/log4j.properties > $KAFKA_HOME/config/log4j.properties.1
+        mv $KAFKA_HOME/config/log4j.properties.1 $KAFKA_HOME/config/log4j.properties
+        sed 's/TRACE/INFO/g' $KAFKA_HOME/config/tools-log4j.properties > $KAFKA_HOME/config/tools-log4j.properties.1
+        mv $KAFKA_HOME/config/tools-log4j.properties.1 $KAFKA_HOME/config/tools-log4j.properties
+    fi
+}
 
 if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
     echo "need one param!"
     echo "start       start kafka-server"
     echo "stop        stop kafka-server"
     echo "info        list kafka-topics,kafka-brokers"
+    echo "topics      create configurated topics"
+    echo "log [on|off] log on or log off"
     echo "CLUSTERTYPE:`GetAllClusterType`"
     exit 0
 elif [ "x${CMD}" = "xinfo" ]; then
@@ -78,7 +130,11 @@ elif [ "x${CMD}" = "xinfo" ]; then
     LOGFILE="${CLUSTERVOLUME}/`hostname`/log/server.log*"
     echo "kafka-brokers-log==>`grep -w 'Registered broker' ${LOGFILE}`"
 elif [ "x${CMD}" = "xstart" ]; then
-    ${CLUSTERVOLUME}/bin/start-kafka.sh ${pidfile}
+    logonoff $istrace
+    ${CLUSTERVOLUME}/bin/start-kafka.sh start ${pidfile}
+elif [ "x${CMD}" = "xtopics" ]; then
+    logonoff $istrace
+    ${CLUSTERVOLUME}/bin/start-kafka.sh topcis
 elif [ "x${CMD}" = "xstop" ]; then
     #$KAFKA_HOME/bin/kafka-server-stop.sh
     PIDS=`cat ${pidfile} 2>/dev/null`
@@ -103,6 +159,8 @@ elif [ "x${CMD}" = "xstop" ]; then
     fi
     rm -f ${pidfile} 2>/dev/null
     exit 0
+elif [ "x${CMD}" = "xlog" ]; then
+    logonoff $istrace
 else
     exec $@
 fi

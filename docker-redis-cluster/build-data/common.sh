@@ -1,31 +1,24 @@
 #!/bin/sh
 #set -x
 
+ALLCLUSTTYPES="mq devinfo session rating ratingcdr dupcheck autorule"
+
+
 CheckClusterType()
 {
-  if [ "x${1}" = 'xmq' ]; then
-    shift
-  elif [ "x${1}" = 'xdevinfo' ]; then
-    shift
-  elif [ "x${1}" = 'xsession' ]; then
-    shift
-  elif [ "x${1}" = 'xrating' ]; then
-    shift
-  elif [ "x${1}" = 'xratingcdr' ]; then
-    shift
-  elif [ "x${1}" = 'xdupcheck' ]; then
-    shift
-  elif [ "x${1}" = 'xautorule' ]; then
-    shift
-  else
-    return 100
-  fi
-  return 0
+  for t in ${ALLCLUSTTYPES}
+  do
+       if [ "x$t" = "x${1}" ]; then
+          shift;
+          return 0
+       fi
+  done
+  return 100
 }
 
 GetAllClusterType()
 {
-  echo "mq devinfo session rating ratingcdr dupcheck autorule"
+  echo ${ALLCLUSTTYPES}
 }
 
 #redis客户端封装

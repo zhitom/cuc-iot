@@ -2,6 +2,22 @@
 
 set -e
 
+CLUSTERVOLUME="`dirname $0`/../"
+
+#时区修改
+tzinfo=""
+if [ -f /etc/timezone ]; then
+    tzinfo="`cat /etc/timezone`"
+fi
+if [ "x$tzinfo" != "xAsia/Shanghai" ]; then
+    if [ ! -d /usr/share/zoneinfo/Asia ]; then
+        mkdir -p /usr/share/zoneinfo/Asia
+    fi
+    ln -sf ${CLUSTERVOLUME}/bin/TZ_Shanghai /usr/share/zoneinfo/Asia/Shanghai
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 
+    echo "Asia/Shanghai" > /etc/timezone
+fi
+
 # Allow the container to be started with `--user`
 if [ "$1" = 'zkServer.sh' -a "$(id -u)" = '0' ]; then
     chown -R "$ZOO_USER" "$ZOO_DATA_DIR" "$ZOO_DATA_LOG_DIR"

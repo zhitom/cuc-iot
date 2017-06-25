@@ -64,8 +64,8 @@ build:
 run:
 	@echo "==>current ContainerID List：$(CIDLIST)"
 	@echo "==>sync shell files ..."
-	cp -f ./build-data/*.sh ./$(VOLUMENAME)/$(CLUSTERTYPE)/bin/
-	chmod 0777 ./$(VOLUMENAME)/$(CLUSTERTYPE)/bin/*.sh
+	cp -f ./build-data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/bin/
+	chmod 0777 ./$(VOLUMENAME)/$(CLUSTERTYPE)/bin/*
 	@echo "==>empty container's instance infomation ..."
 	@for port in `cat ./$(VOLUMENAME)/$(CLUSTERTYPE)/conf/redis-cluster.ports.all`; \
 	do \
@@ -179,10 +179,10 @@ clean:
 	$(DOCKCMD) ps -a;
 
 cleandata:
-	@while [ 1 ];do \
+	@while [ 1 ]; do \
 	echo "Cleandata Confirmed:y/n?"; \
 	if [ "x$(NOCONFIRM)" = "xy" ]; then \
-	y="y"; \
+	y="y";echo $$y; \
 	else \
 	read y; \
 	fi; \
@@ -195,10 +195,10 @@ cleandata:
 	exit 111; \
 	fi; \
 	done
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/data/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/data/.* 2>/dev/null||echo
 
 cleanlog:
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/log/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/log/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/log/.* 2>/dev/null||echo
 
 distclean:
 	$(DOCKCMD) rmi $(IMGNAME)

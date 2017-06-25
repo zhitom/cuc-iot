@@ -14,6 +14,7 @@ services:
             - /zookeeper-cluster-volume/offline/zkcluster-offline-1/log:/zookeeper-cluster/offline/zkcluster-offline-1/log
         hostname: zkcluster-offline-1
         environment:
+            JVMFLAGS: "-Xmx64M -Xms64M"
             ZOO_MY_ID: 1
             ZOO_PORT: 12009
             ZOO_DATA_DIR: /zookeeper-cluster/offline/zkcluster-offline-1/data
@@ -37,6 +38,7 @@ services:
             - /zookeeper-cluster-volume/offline/zkcluster-offline-2/datalog:/zookeeper-cluster/offline/zkcluster-offline-2/datalog
             - /zookeeper-cluster-volume/offline/zkcluster-offline-2/log:/zookeeper-cluster/offline/zkcluster-offline-2/log
         environment:
+            JVMFLAGS: "-Xmx64M -Xms64M"
             ZOO_MY_ID: 2
             ZOO_PORT: 12010
             ZOO_DATA_DIR: /zookeeper-cluster/offline/zkcluster-offline-2/data
@@ -60,6 +62,7 @@ services:
             - /zookeeper-cluster-volume/offline/zkcluster-offline-3/log:/zookeeper-cluster/offline/zkcluster-offline-3/log
         hostname: zkcluster-offline-3
         environment:
+            JVMFLAGS: "-Xmx64M -Xms64M"
             ZOO_MY_ID: 3
             ZOO_PORT: 12011
             ZOO_DATA_DIR: /zookeeper-cluster/offline/zkcluster-offline-3/data

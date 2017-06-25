@@ -68,22 +68,22 @@ run:
 	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
 	mkdir -p $(VOLUMEFULLNAME)/bin/
 	cp ./build-data/*sh $(VOLUMEFULLNAME)/bin/
-	chmod 0777 $(VOLUMEFULLNAME)/bin/*.sh
+	chmod 0777 $(VOLUMEFULLNAME)/bin/*
 	@echo "==>kafka-cluster.$(CLUSTERTYPE),up services: start all containers..."; 
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) up -d --no-recreate; 
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=30 $${svc}; \
+	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=100 $${svc}; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) logs --tail=100 $${svc}; \
 	done
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ps -ef; \
-	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ps -ef; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) ps -ef; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) ps -ef; \
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ifconfig; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} ifconfig; \
 	echo "==>"$(DOCKCMD) port $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX); \
@@ -96,12 +96,22 @@ run:
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} netstat -natp; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} netstat -natp; \
 	done
+	@echo "==>create all topics...";
+	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
+	svc="`echo $${svc}`"; \
+	echo "=============================================================="; \
+	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) topics; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) topics; \
+	break; \
+	done
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
 	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) info; \
 	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/mykafka.sh $(CLUSTERTYPE) info; \
+	break; \
 	done
 	@echo "==>services status ..."
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
@@ -169,10 +179,10 @@ clean:
 	rm -rf  $(DOCKCOMPCMD_ENVFILE)
 
 cleandata:
-	@while [ 1 ];do \
+	@while [ 1 ]; do \
 	echo "Cleandata Confirmed:y/n?"; \
 	if [ "x$(NOCONFIRM)" = "xy" ]; then \
-	y="y"; \
+	y="y";echo $$y; \
 	else \
 	read y; \
 	fi; \
@@ -185,10 +195,10 @@ cleandata:
 	exit 111; \
 	fi; \
 	done
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/data/.* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/datalog/.* 2>/dev/null||echo
 
 cleanlog:
-	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/* 2>/dev/null
+	rm -rf ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/* ./$(VOLUMENAME)/$(CLUSTERTYPE)/*/log/.* 2>/dev/null||echo
 
 distclean:
 	@echo "==>rmi image: $(IMGNAME)";

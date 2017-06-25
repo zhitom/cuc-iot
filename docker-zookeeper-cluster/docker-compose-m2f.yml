@@ -14,6 +14,7 @@ services:
             - /zookeeper-cluster-volume/m2f/zkcluster-m2f-1/log:/zookeeper-cluster/m2f/zkcluster-m2f-1/log
         hostname: zkcluster-m2f-1
         environment:
+            JVMFLAGS: "-Xmx64M -Xms64M"
             ZOO_MY_ID: 1
             ZOO_PORT: 12003
             ZOO_DATA_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-1/data
@@ -37,6 +38,7 @@ services:
             - /zookeeper-cluster-volume/m2f/zkcluster-m2f-2/datalog:/zookeeper-cluster/m2f/zkcluster-m2f-2/datalog
             - /zookeeper-cluster-volume/m2f/zkcluster-m2f-2/log:/zookeeper-cluster/m2f/zkcluster-m2f-2/log
         environment:
+            JVMFLAGS: "-Xmx64M -Xms64M"
             ZOO_MY_ID: 2
             ZOO_PORT: 12004
             ZOO_DATA_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-2/data
@@ -60,6 +62,7 @@ services:
             - /zookeeper-cluster-volume/m2f/zkcluster-m2f-3/log:/zookeeper-cluster/m2f/zkcluster-m2f-3/log
         hostname: zkcluster-m2f-3
         environment:
+            JVMFLAGS: "-Xmx64M -Xms64M"
             ZOO_MY_ID: 3
             ZOO_PORT: 12005
             ZOO_DATA_DIR: /zookeeper-cluster/m2f/zkcluster-m2f-3/data
