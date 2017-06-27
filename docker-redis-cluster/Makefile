@@ -52,7 +52,7 @@ help:
 	@echo "distclean    delete image"
 	@echo "cluster      create cluster,only once!"
 	@echo "OPTION:"
-	@echo "CLUSTERTYPE=mq(default) devinfo session rating ratingcdr dupcheck autorule"
+	@echo "CLUSTERTYPE=mq(default) devinfo session rating ratingcdr dupcheck autorule acct"
 	@echo "RUNOPT=--net=host(default) to deploy two-way commucation for conveniently Developer or Tester."
 	@echo "current ContainerID List：$(CIDLIST)"
 

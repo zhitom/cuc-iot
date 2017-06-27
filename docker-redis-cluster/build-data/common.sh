@@ -1,7 +1,7 @@
 #!/bin/sh
 #set -x
 
-ALLCLUSTTYPES="mq devinfo session rating ratingcdr dupcheck autorule"
+ALLCLUSTTYPES="mq devinfo session rating ratingcdr dupcheck autorule acct"
 
 
 CheckClusterType()
