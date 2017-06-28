@@ -8,13 +8,15 @@ MAINTAINER ZhiQiang Shan <shandyshandy@163.com>
 #切换当前目录
 WORKDIR /
 ENV REDIS_HOME /redis/src
+ENV REDIS_CLUSTER  $REDIS_HOME
+ENV PATH $PATH:$REDIS_CLUSTER/bin:$REDIS_HOME/bin
 #RUN apt-get install -y vim sudo
 #RUN echo export LC_ALL=C.UTF-8 >>/etc/profile
 
 ##########################################
 #下面是集群个性化的配置，覆盖到镜像里边
 ##########################################
-RUN rm -rf /redis-conf /docker-entrypoint.sh
+#RUN rm -rf /redis-conf /docker-entrypoint.sh
 RUN rm -rf /redis-data
 RUN rm -rf /etc/supervisor/conf.d/supervisord.conf
 COPY ./build-data/supervisord.conf  /etc/supervisor/supervisord.conf
@@ -32,7 +34,7 @@ RUN echo "chmod 755 /redis-cluster/*/bin/*.sh" >> ~/.bash_profile
 ##########################################
 #执行脚本，并将CMD指定字符串作为脚本入参传递给docker-entrypoint.sh
 ##########################################
-ENTRYPOINT ["/redis-cluster/mq/bin/docker-entrypoint.sh"]
-CMD ["mq","1"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+#CMD ["mq","1"]
 
 

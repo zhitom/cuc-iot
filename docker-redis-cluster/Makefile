@@ -2,7 +2,7 @@
 #固化值
 #######################################################
 #镜像名字
-IMGNAME?=zhitom/cuc-iot-redis-cluster:latest
+IMGNAME?=zhitom/docker-redis-cluster:latest
 #当前操作的redis集群类型
 CLUSTERTYPE?=mq
 #容器里边的路径
@@ -57,8 +57,15 @@ help:
 	@echo "current ContainerID List：$(CIDLIST)"
 
 build:
-	cp -f ./build-data/*.sh ./$(VOLUMENAME)/$(CLUSTERTYPE)/bin/
-	chmod 0777 ./$(VOLUMENAME)/$(CLUSTERTYPE)/bin/*.sh
+	@echo "==>build $(IMGNAME) ..."
+	@set NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`; \
+	if [ "x$$NONEMID" != "x" ]; then \
+	set NONECID=`$(DOCKCMD) ps -a|grep $$NONEMID|awk '{print $$1}'`; \
+	if [ "x$$NONECID" != "x" ]; then \
+	$(DOCKCMD) rm $$NONECID; \
+	fi; \
+	$(DOCKCMD) rmi $$NONEMID; \
+	fi;
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 
 run:
@@ -77,9 +84,9 @@ run:
 	@for cid in $(CIDLIST);do \
 	echo "==>getport and redis-cluster.$(CLUSTERTYPE).$$cid"; \
 	./build-data/getport.sh $(CLUSTERTYPE) $$cid; \
-	echo $(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(CLUSTERTYPE)/conf/redis-cluster.ports.$(CLUSTERTYPE).$$cid.conf` \
+	echo $(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(CLUSTERTYPE)/conf/redis-cluster.ports.$(CLUSTERTYPE).$$cid.conf` -e REDIS_CLUSTER=$(CLUSTERVOLUME) \
 					$(VOLUMEOPT) --name redis-cluster.$(CLUSTERTYPE).$$cid -h redis-cluster.$(CLUSTERTYPE).$$cid --entrypoint $(CLUSTERVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(CLUSTERTYPE) $$cid; \
-	$(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(CLUSTERTYPE)/conf/redis-cluster.ports.$(CLUSTERTYPE).$$cid.conf` \
+	$(DOCKCMD) run $(RUNOPT) -d `cat ./$(VOLUMENAME)/$(CLUSTERTYPE)/conf/redis-cluster.ports.$(CLUSTERTYPE).$$cid.conf` -e REDIS_CLUSTER=$(CLUSTERVOLUME) \
                     $(VOLUMEOPT) --name redis-cluster.$(CLUSTERTYPE).$$cid -h redis-cluster.$(CLUSTERTYPE).$$cid --entrypoint $(CLUSTERVOLUME)/bin/docker-entrypoint.sh $(IMGNAME) $(CLUSTERTYPE) $$cid; \
     echo $(DOCKCMD) exec redis-cluster.$(CLUSTERTYPE).$$cid ps -ef; \
     $(DOCKCMD) exec redis-cluster.$(CLUSTERTYPE).$$cid ps -ef; \

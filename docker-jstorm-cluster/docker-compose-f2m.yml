@@ -1,0 +1,56 @@
+version: '3'
+services:
+    #nimbus主机始终需要排在最前面
+    jstormcluster-offline-1:
+        build:
+          context: ./
+          dockerfile: Dockerfile
+        container_name: jstormcluster-offline-1
+        hostname: jstormcluster-offline-1
+        ports:
+          - "30000:30000"
+        environment:
+          JSTORM_CLUSTER: /jstorm-cluster/offline
+          #下面JSTORM打头的环境变量会覆盖到集群配置文件里边，注意value的格式需符合yaml语法，并用引号引起来
+          #所以产生的storm.yaml都是单行配置
+          JSTORM_STORM_ZOOKEEPER_SERVERS: '[poffline_zkcluster-offline-1_1,poffline_zkcluster-offline-2_1,poffline_zkcluster-offline-3_1]'
+          JSTORM_STORM_LOCAL_DIR: /jstorm-cluster/offline/jstormcluster-offline-1/data
+          JSTORM_SUPERVISOR_SLOTS_PORTS: '[30000,30001,30002]'
+          JSTORM_NIMBUS_SEEDS: '[jstormcluster-offline-1]'
+        volumes:
+            - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
+            - /jstorm-cluster-volume/offline/jstormcluster-offline-1/data:/jstorm-cluster/offline/jstormcluster-offline-1/data
+            - /jstorm-cluster-volume/offline/jstormcluster-offline-1/log:/jstorm-cluster/offline/jstormcluster-offline-1/log
+        command: jstorm nimbus
+        restart: always
+        external_links:
+            - poffline_zkcluster-offline-1_1:zookeeper1
+            - poffline_zkcluster-offline-2_1:zookeeper2
+            - poffline_zkcluster-offline-3_1:zookeeper3
+        
+    jstormcluster-offline-2:
+        build:
+          context: ./
+          dockerfile: Dockerfile
+        container_name: jstormcluster-offline-2
+        hostname: jstormcluster-offline-2
+        ports:
+          - "30001:30001"
+        environment:
+          JSTORM_CLUSTER: /jstorm-cluster/offline
+          JSTORM_STORM_ZOOKEEPER_SERVERS: '[poffline_zkcluster-offline-1_1,poffline_zkcluster-offline-2_1,poffline_zkcluster-offline-3_1]'
+          JSTORM_STORM_LOCAL_DIR: /jstorm-cluster/offline/jstormcluster-offline-2/data
+          JSTORM_SUPERVISOR_SLOTS_PORTS: '[30000,30001,30002]'
+          JSTORM_NIMBUS_SEEDS: '[jstormcluster-offline-2]'
+        volumes:
+            - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
+            - /jstorm-cluster-volume/offline/jstormcluster-offline-2/data:/jstorm-cluster/offline/jstormcluster-offline-2/data
+            - /jstorm-cluster-volume/offline/jstormcluster-offline-2/log:/jstorm-cluster/offline/jstormcluster-offline-2/log
+        command: jstorm supervisor
+        restart: always
+        external_links:
+            - poffline_zkcluster-offline-1_1:zookeeper1
+            - poffline_zkcluster-offline-2_1:zookeeper2
+            - poffline_zkcluster-offline-3_1:zookeeper3
+    
+
