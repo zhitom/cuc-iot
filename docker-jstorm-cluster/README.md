@@ -11,7 +11,7 @@ jstorm-cluster是在[mtunique/jstorm](https://hub.docker.com/r/mtunique/jstorm/)
 
 # 版本
 
-- jstorm.latest == 2.4.0
+- jstorm.latest == 2.2.1
 
 # Windows7 or Windows10
 
