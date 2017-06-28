@@ -36,7 +36,8 @@ stop()
 {
   echo "$1==>stop from $2 ..."
   cd $2/
-  make CLUSTERTYPE=$CLUSTERTYPE stop
+# docker-compose don't need stop
+#  make CLUSTERTYPE=$CLUSTERTYPE stop
   make CLUSTERTYPE=$CLUSTERTYPE clean
   make CLUSTERTYPE=$CLUSTERTYPE NOCONFIRM=y cleandata cleanlog
   find $3/
