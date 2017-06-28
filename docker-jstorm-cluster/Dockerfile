@@ -10,6 +10,8 @@ ARG JSTORM_INSTALL_PATH=/opt
 ENV JSTORM_HOME $JSTORM_INSTALL_PATH/jstorm
 ENV JSTORM_CLUSTER  $JSTORM_HOME
 ENV JSTORM_VERSION=2.2.1
+ENV JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+ENV JAVA_HOME=${JRE_HOME}
 ENV PATH $PATH:$JSTORM_CLUSTER/bin:$JSTORM_HOME/bin
 ENV TERM xterm-color
 
@@ -21,7 +23,6 @@ RUN cp /etc/apt/sources.list.china /etc/apt/sources.list
 RUN ln -s ~/.profile ~/.bash_profile
 
 #第3方软件
-RUN apt-get remove vim-common
 RUN apt-get update && \
     apt-get install -y vim net-tools iputils-ping
 
@@ -43,4 +44,5 @@ WORKDIR $JSTORM_HOME
 # USER $JSTORM_USER
 ADD build-data/jstorm.sh /
 ADD build-data/common.sh /
+
 ENTRYPOINT ["/jstorm.sh"]

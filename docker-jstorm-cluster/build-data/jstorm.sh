@@ -119,12 +119,16 @@ elif [ "x${CMD}" = "xinfo" ]; then
     LOGFILE="${CLUSTERVOLUME}/`hostname`/log/server.log*"
     echo "jstorm-brokers-log==>`grep -w 'Registered broker' ${LOGFILE}`"
 elif [ "x${CMD}" = "xstart" ]; then
+    #nimbus.host和nimbus.host.start.supervisor为个性化配置，取消不使用，仅起停脚本使用
     logonoff $istrace
     CONFIG="$JSTORM_HOME/conf/storm.yaml"
     for VAR in `env`
     do
       echo "ENV_VAR:$VAR=${!env_var}"
-      if [[ $VAR =~ ^JSTORM_ && ! $VAR =~ ^JSTORM_HOME ]]; then
+      if [[ $VAR =~ ^JSTORM_HOME || $VAR =~ ^JSTORM_CLUSTER ]]; then
+        continue;
+      fi
+      if [[ $VAR =~ ^JSTORM_ ]]; then
         jstorm_name=`echo "$VAR" | sed -r "s/JSTORM_(.*)=.*/\1/g" | tr '[:upper:]' '[:lower:]' | tr _ .`
         env_var=`echo "$VAR" | sed -r "s/(.*)=.*/\1/g"`
         if egrep -q "(^|^#)$jstorm_name=" $CONFIG; then
@@ -135,7 +139,8 @@ elif [ "x${CMD}" = "xstart" ]; then
       fi
     done
     shift
-    exec "$@"
+    cd ${CLUSTERVOLUME}/bin&&./start.sh "$@"
+    #exec "$@"
 elif [ "x${CMD}" = "xstop" ]; then
     $JSTORM_HOME/bin/stop.sh
     exit 0

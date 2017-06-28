@@ -18,7 +18,7 @@ services:
             - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
             - /jstorm-cluster-volume/offline/jstormcluster-offline-1/data:/jstorm-cluster/offline/jstormcluster-offline-1/data
             - /jstorm-cluster-volume/offline/jstormcluster-offline-1/log:/jstorm-cluster/offline/jstormcluster-offline-1/log
-        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,jstorm,nimbus]
+        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,nimbus]
         entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,bash]
         restart: always
         external_links:
@@ -41,7 +41,7 @@ services:
             - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
             - /jstorm-cluster-volume/offline/jstormcluster-offline-2/data:/jstorm-cluster/offline/jstormcluster-offline-2/data
             - /jstorm-cluster-volume/offline/jstormcluster-offline-2/log:/jstorm-cluster/offline/jstormcluster-offline-2/log
-        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,jstorm,supervisor]
+        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,supervisor]
         entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,bash]
         restart: always
         depends_on:
