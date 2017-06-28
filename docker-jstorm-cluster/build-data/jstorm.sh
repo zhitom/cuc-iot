@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -x
 . `dirname $0`/common.sh
 
 CLUSTERTYPE="$1";shift
@@ -13,17 +13,18 @@ CLUSTERVOLUME="/jstorm-cluster/${CLUSTERTYPE}"
 istrace=0
 
 #时区修改
-#tzinfo=""
-#if [ -f /etc/timezone ]; then
-#    tzinfo="`cat /etc/timezone`"
-#fi
-#if [ "x$tzinfo" != "xAsia/Shanghai" ]; then
-#    mkdir -p /usr/share/zoneinfo/Asia
-#    ln -sf ${CLUSTERVOLUME}/bin/TZ_Shanghai /usr/share/zoneinfo/Asia/Shanghai
-#    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 
-#    echo "Asia/Shanghai" > /etc/timezone
-#fi
-#
+tzinfo=""
+if [ -f /etc/timezone ]; then
+    tzinfo="`cat /etc/timezone`"
+fi
+if [ "x$tzinfo" != "xAsia/Shanghai" ]; then
+    mkdir -p /usr/share/zoneinfo/Asia
+    ln -sf ${CLUSTERVOLUME}/bin/TZ_Shanghai /usr/share/zoneinfo/Asia/Shanghai
+    rm -rf /etc/localtime 2>/dev/null
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 
+    echo "Asia/Shanghai" > /etc/timezone
+fi
+
 ##map映射空间大小修改，65536的4倍
 #MAXMAPCOUNT=$(eval "sysctl vm.max_map_count |awk '{print \$3}'")
 #if [ "x${MAXMAPCOUNT}" != "x262144" ]; then
@@ -55,11 +56,12 @@ logonoff()
     fi
 }
 
-if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
+if [ -o "x${CMD}" = "xhelp" ]; then
     echo "need one param!"
     echo "start       start jstorm-server"
     echo "stop        stop jstorm-server"
     echo "info        list infomations"
+    echo "bash        only bash"
     echo "log [on|off] log on or log off"
     echo "CLUSTERTYPE:`GetAllClusterType`"
     exit 0
@@ -132,33 +134,17 @@ elif [ "x${CMD}" = "xstart" ]; then
         fi
       fi
     done
+    shift
     exec "$@"
 elif [ "x${CMD}" = "xstop" ]; then
-    #$JSTORM_HOME/bin/jstorm-server-stop.sh
-    PIDS=`cat ${pidfile} 2>/dev/null`
-    echo "stop jstorm server pids=$PIDS"
-    if [ -z "$PIDS" ]; then
-      echo "No jstorm server to stop"
-    else
-      kill -s TERM $PIDS
-      echo "Already Send TERM Signal!"
-      #sleep 1
-      #while [ 1 ];
-      #do
-      #  kill -s TERM $PIDS
-      #  if [ $? -eq 0 ]; then
-      #      echo "jstorm server still running..."
-      #      sleep 1
-      #  else
-      #      echo "jstorm server is Stopped!"
-      #      break;
-      #  fi
-      #done
-    fi
-    rm -f ${pidfile} 2>/dev/null
+    $JSTORM_HOME/bin/stop.sh
     exit 0
+elif [ "x${CMD}" = "xbash" ]; then
+    tail -f /etc/timezone
 elif [ "x${CMD}" = "xlog" ]; then
     logonoff $istrace
+elif [ "x${CMD}" = "x" ]; then
+    tail -f /etc/timezone
 else
     exec $@
 fi

@@ -2,9 +2,9 @@
 
 . ./build-data/common.sh
 
-OBJ=(zk kafka)
+OBJ=(zk jstorm)
 DIR=(../docker-zookeeper-cluster .)
-VOL=(zookeeper-cluster-volume kafka-cluster-volume)
+VOL=(zookeeper-cluster-volume jstorm-cluster-volume)
 REVOBJ=$(eval "echo ${OBJ[@]}|awk '{for(i=NF;i>0;i--)print \$i;}'")
 CLUSTERTYPE="$1";shift;
 

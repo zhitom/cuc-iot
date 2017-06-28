@@ -2,10 +2,7 @@ version: '3'
 services:
     #nimbus主机始终需要排在最前面
     jstormcluster-offline-1:
-        build:
-          context: ./
-          dockerfile: Dockerfile
-        container_name: jstormcluster-offline-1
+        image: zhitom/docker-jstorm-cluster:latest
         hostname: jstormcluster-offline-1
         ports:
           - "30000:30000"
@@ -21,7 +18,8 @@ services:
             - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
             - /jstorm-cluster-volume/offline/jstormcluster-offline-1/data:/jstorm-cluster/offline/jstormcluster-offline-1/data
             - /jstorm-cluster-volume/offline/jstormcluster-offline-1/log:/jstorm-cluster/offline/jstormcluster-offline-1/log
-        command: jstorm nimbus
+        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,jstorm,nimbus]
+        entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,bash]
         restart: always
         external_links:
             - poffline_zkcluster-offline-1_1:zookeeper1
@@ -29,10 +27,7 @@ services:
             - poffline_zkcluster-offline-3_1:zookeeper3
         
     jstormcluster-offline-2:
-        build:
-          context: ./
-          dockerfile: Dockerfile
-        container_name: jstormcluster-offline-2
+        image: zhitom/docker-jstorm-cluster:latest
         hostname: jstormcluster-offline-2
         ports:
           - "30001:30001"
@@ -46,8 +41,13 @@ services:
             - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
             - /jstorm-cluster-volume/offline/jstormcluster-offline-2/data:/jstorm-cluster/offline/jstormcluster-offline-2/data
             - /jstorm-cluster-volume/offline/jstormcluster-offline-2/log:/jstorm-cluster/offline/jstormcluster-offline-2/log
-        command: jstorm supervisor
+        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,jstorm,supervisor]
+        entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,bash]
         restart: always
+        depends_on:
+            - jstormcluster-offline-1
+        links:
+            - jstormcluster-offline-1
         external_links:
             - poffline_zkcluster-offline-1_1:zookeeper1
             - poffline_zkcluster-offline-2_1:zookeeper2

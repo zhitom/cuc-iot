@@ -19,7 +19,6 @@ CONTAINERINDEX?=1
 VM=${DOCKER_MACHINE_NAME-default}
 DOCKER_MACHINE=docker-machine
 IP=$(shell $(DOCKER_MACHINE) ip $(VM))
-DOCKCOMPCMD_ENVFILE=.env
 DOCKCMD?=docker
 DOCKCOMPCMD?=docker-compose -f docker-compose-$(CLUSTERTYPE).yml
 #外面透传给容器或客户端的命令
@@ -61,8 +60,6 @@ help:
 
 build:
 	@echo "==>build $(IMGNAME) ..."
-	$(DOCKCMD) build -t $(IMGNAME) .
-	exit 0
 	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
 	if [ "x$$NONEMID" != "x" ]; then \
 		for mid in $$NONEMID;do \
@@ -77,9 +74,8 @@ build:
 
 run:
 	@echo "==>prepare shell ..."
-	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
 	mkdir -p $(VOLUMEFULLNAME)/bin/
-	cp ./build-data/*sh $(VOLUMEFULLNAME)/bin/
+	cp ./build-data/* $(VOLUMEFULLNAME)/bin/
 	chmod 0777 $(VOLUMEFULLNAME)/bin/*
 	@echo "==>jstorm-cluster.$(CLUSTERTYPE),up services: start all containers..."; 
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) up -d --no-recreate; 
@@ -108,15 +104,6 @@ run:
 	echo "==>"$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} netstat -natp; \
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) exec $${svc} netstat -natp; \
 	done
-	@echo "==>create all topics...";
-	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
-	svc="`echo $${svc}`"; \
-	echo "=============================================================="; \
-	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) topics; \
-	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) topics; \
-	break; \
-	done
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
@@ -130,12 +117,10 @@ run:
 	$(DOCKCMD) ps -f name="$(PROJECTNAME)_*";
 	@echo "==>network status ..."
 	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
-	#rm -rf  $(DOCKCOMPCMD_ENVFILE)
 
 start:run
 
 stop:
-	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
 	@echo "==>down services: stop all containers...";
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
@@ -147,7 +132,6 @@ stop:
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) stop; 
 	@echo "==>services status ..."
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
-	#rm -rf  $(DOCKCOMPCMD_ENVFILE)
 
 bash:
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
@@ -181,14 +165,12 @@ localcliall:
 	@echo "==>UnSupported!"
 
 clean:
-	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
 	@echo "==>down services: rm all containers...";
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) down; 
 	@echo "==>services status ...";
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) ps ;
 	@echo "==>network status ...";
 	$(DOCKCMD) network ls -f name=$(NETWORKNAME);
-	rm -rf  $(DOCKCOMPCMD_ENVFILE)
 
 cleandata:
 	@while [ 1 ]; do \

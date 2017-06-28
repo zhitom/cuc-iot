@@ -9,8 +9,23 @@ ARG JSTORM_URL=https://github.com/alibaba/jstorm/releases/download/${JSTORM_VERS
 ARG JSTORM_INSTALL_PATH=/opt
 ENV JSTORM_HOME $JSTORM_INSTALL_PATH/jstorm
 ENV JSTORM_CLUSTER  $JSTORM_HOME
+ENV JSTORM_VERSION=2.2.1
 ENV PATH $PATH:$JSTORM_CLUSTER/bin:$JSTORM_HOME/bin
+ENV TERM xterm-color
 
+#修改安装源
+RUN sed 's/archive.ubuntu.com/mirros.163.com/g' /etc/apt/sources.list > /etc/apt/sources.list.china
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.ubuntu
+RUN cp /etc/apt/sources.list.china /etc/apt/sources.list
+
+RUN ln -s ~/.profile ~/.bash_profile
+
+#第3方软件
+RUN apt-get remove vim-common
+RUN apt-get update && \
+    apt-get install -y vim net-tools iputils-ping
+
+#安装：java unzip wget python jstorm
 RUN apt-get update && \
     apt-get install -y openjdk-8-jre-headless unzip wget python && \
     apt-get clean && \
