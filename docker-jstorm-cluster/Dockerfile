@@ -26,5 +26,6 @@ RUN apt-get update && \
 WORKDIR $JSTORM_HOME
 
 # USER $JSTORM_USER
-ADD docker-entrypoint.sh /
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ADD build-data/jstorm.sh /
+ADD build-data/common.sh /
+ENTRYPOINT ["/jstorm.sh"]
