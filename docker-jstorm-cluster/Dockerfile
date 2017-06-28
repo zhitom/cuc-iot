@@ -16,7 +16,8 @@ RUN apt-get update && \
     apt-get clean && \
     mkdir -p "${JSTORM_INSTALL_PATH}" && \
     wget "$JSTORM_URL" -O "$JSTORM_INSTALL_PATH/$JSTORM_FILE" && \
-    tar xvfz "${JSTORM_INSTALL_PATH}/jstorm-${JSTORM_VERSION}.tgz" -d "${JSTORM_INSTALL_PATH}" && \
+    gunzip "${JSTORM_INSTALL_PATH}/jstorm-${JSTORM_VERSION}.tgz" && \
+    tar xvf "${JSTORM_INSTALL_PATH}/jstorm-${JSTORM_VERSION}.tar" -d "${JSTORM_INSTALL_PATH}" && \
     mv "${JSTORM_INSTALL_PATH}/jstorm-${JSTORM_VERSION}" "${JSTORM_HOME}" && \
     mv "${JSTORM_HOME}/conf/storm.yaml" "${JSTORM_HOME}/conf/storm.yaml.template" && \
     chmod +x "$JSTORM_HOME/bin/jstorm" && \
