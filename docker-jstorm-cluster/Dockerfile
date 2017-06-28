@@ -16,9 +16,9 @@ ENV PATH $PATH:$JSTORM_CLUSTER/bin:$JSTORM_HOME/bin
 ENV TERM xterm-color
 
 #修改安装源
-#RUN sed 's/archive.ubuntu.com/mirros.163.com/g' /etc/apt/sources.list > /etc/apt/sources.list.china
-#RUN cp /etc/apt/sources.list /etc/apt/sources.list.ubuntu
-#RUN cp /etc/apt/sources.list.china /etc/apt/sources.list
+RUN sed 's/archive.ubuntu.com/mirrors.163.com/g' /etc/apt/sources.list > /etc/apt/sources.list.china
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.ubuntu
+RUN cp /etc/apt/sources.list.china /etc/apt/sources.list
 
 RUN ln -s ~/.profile ~/.bash_profile
 
