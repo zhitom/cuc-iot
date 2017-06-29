@@ -14,6 +14,7 @@ DOCKCMD?=docker
 #外面透传给容器或客户端的命令
 CMD?=""
 NOCONFIRM?=n
+BUILDTEST?=0
 #######################################################
 #下面的根据本机情况进行修改
 #######################################################
@@ -57,6 +58,21 @@ help:
 	@echo "current ContainerID List：$(CIDLIST)"
 
 build:
+	@echo "Use directly OFFICIAL image: docker pull $(IMGNAME)"
+	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
+	if [ "x$$NONEMID" != "x" ]; then \
+		for mid in $$NONEMID;do \
+			NONECID=`$(DOCKCMD) ps -a|grep $$mid|awk '{print $$1}'`;echo none container=$$NONECID; \
+			if [ "x$$NONECID" != "x" ]; then \
+				$(DOCKCMD) rm $$NONECID; \
+			fi; \
+		done; \
+		$(DOCKCMD) rmi $$NONEMID; \
+	fi;
+	$(DOCKCMD) pull $(IMGNAME)
+	@if [ "x$(BUILDTEST)" = "x0" ]; then \
+	exit 0; \
+	fi;
 	@echo "==>build $(IMGNAME) ..."
 	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
 	if [ "x$$NONEMID" != "x" ]; then \

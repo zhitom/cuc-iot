@@ -71,7 +71,9 @@ build:
 		$(DOCKCMD) rmi $$NONEMID; \
 	fi;
 	$(DOCKCMD) pull $(IMGNAME)
-	exit 0
+	@if [ "x$(BUILDTEST)" = "x0" ]; then \
+	exit 0; \
+	fi;
 	@echo "==>build $(IMGNAME) ..."
 	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
 	if [ "x$$NONEMID" != "x" ]; then \
