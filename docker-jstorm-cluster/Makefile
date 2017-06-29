@@ -59,6 +59,19 @@ help:
 	@echo "CLUSTERTYPE=f2m(default) m2f info offline cb autorule infomgr acctout"
 
 build:
+	@echo "Use directly OFFICIAL image: docker pull $(IMGNAME)"
+	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
+	if [ "x$$NONEMID" != "x" ]; then \
+		for mid in $$NONEMID;do \
+			NONECID=`$(DOCKCMD) ps -a|grep $$mid|awk '{print $$1}'`;echo none container=$$NONECID; \
+			if [ "x$$NONECID" != "x" ]; then \
+				$(DOCKCMD) rm $$NONECID; \
+			fi; \
+		done; \
+		$(DOCKCMD) rmi $$NONEMID; \
+	fi;
+	$(DOCKCMD) pull $(IMGNAME)
+	exit 0
 	@echo "==>build $(IMGNAME) ..."
 	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
 	if [ "x$$NONEMID" != "x" ]; then \
