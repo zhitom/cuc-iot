@@ -108,8 +108,8 @@ run:
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) info; \
-	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) info; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/jstorm.sh $(CLUSTERTYPE) info; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/jstorm.sh $(CLUSTERTYPE) info; \
 	break; \
 	done
 	@echo "==>services status ..."
@@ -125,8 +125,8 @@ stop:
 	@for svc in `$(DOCKCOMPCMD) -p $(PROJECTNAME) config --services`;do \
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
-	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) stop ; \
-	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) stop; \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/jstorm.sh $(CLUSTERTYPE) stop ; \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/jstorm.sh $(CLUSTERTYPE) stop; \
 	done
 	@echo "==>services stop ..."
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) stop; 
@@ -148,8 +148,8 @@ exe:
 	svc="`echo $${svc}`"; \
 	echo "=============================================================="; \
 	echo "==>container name=$(PROJECTNAME)_$${svc}"; \
-	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) $(CMD); \
-	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/myjstorm.sh $(CLUSTERTYPE) $(CMD); \
+	echo "==>"$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/jstorm.sh $(CLUSTERTYPE) $(CMD); \
+	$(DOCKCMD) exec -it $(PROJECTNAME)_$${svc}_$(CONTAINERINDEX) $(CLUSTERVOLUME)/bin/jstorm.sh $(CLUSTERTYPE) $(CMD); \
 	done
 
 cli:

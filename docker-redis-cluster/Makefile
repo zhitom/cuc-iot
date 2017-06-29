@@ -58,13 +58,15 @@ help:
 
 build:
 	@echo "==>build $(IMGNAME) ..."
-	@set NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`; \
+	@NONEMID=`$(DOCKCMD) images|grep '^<none>'|awk '{print $$3}'`;echo none image=$$NONEMID; \
 	if [ "x$$NONEMID" != "x" ]; then \
-	set NONECID=`$(DOCKCMD) ps -a|grep $$NONEMID|awk '{print $$1}'`; \
-	if [ "x$$NONECID" != "x" ]; then \
-	$(DOCKCMD) rm $$NONECID; \
-	fi; \
-	$(DOCKCMD) rmi $$NONEMID; \
+		for mid in $$NONEMID;do \
+			NONECID=`$(DOCKCMD) ps -a|grep $$mid|awk '{print $$1}'`;echo none container=$$NONECID; \
+			if [ "x$$NONECID" != "x" ]; then \
+				$(DOCKCMD) rm $$NONECID; \
+			fi; \
+		done; \
+		$(DOCKCMD) rmi $$NONEMID; \
 	fi;
 	$(DOCKCMD) build --no-cache=true -t $(IMGNAME) .
 

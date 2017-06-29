@@ -2,7 +2,10 @@
 
 . `dirname $0`/common.sh
 
-CLUSTERTYPE="$1";shift
+CLUSTERTYPE="$1"
+if [ "x$1" != "x" ]; then
+    shift
+fi
 CMD="$1";
 CMDOPT="$2";
 
@@ -68,11 +71,12 @@ logonoff()
 }
 
 if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
-    echo "need one param!"
+    echo "usage: $0 {CLUSTERTYPE} {start|stop|info|topics|bash|log} [args]"
     echo "start       start kafka-server"
     echo "stop        stop kafka-server"
     echo "info        list kafka-topics,kafka-brokers"
     echo "topics      create configurated topics"
+    echo "bash        only bash"
     echo "log [on|off] log on or log off"
     echo "CLUSTERTYPE:`GetAllClusterType`"
     exit 0
@@ -161,6 +165,8 @@ elif [ "x${CMD}" = "xstop" ]; then
     exit 0
 elif [ "x${CMD}" = "xlog" ]; then
     logonoff $istrace
+elif [ "x${CMD}" = "xbash" ]; then
+    tail -f /etc/timezone
 else
     exec $@
 fi

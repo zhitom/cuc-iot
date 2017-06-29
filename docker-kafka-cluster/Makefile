@@ -67,7 +67,7 @@ run:
 	@echo "==>prepare shell ..."
 	echo VMIP=$(IP) > $(DOCKCOMPCMD_ENVFILE)
 	mkdir -p $(VOLUMEFULLNAME)/bin/
-	cp ./build-data/*sh $(VOLUMEFULLNAME)/bin/
+	cp ./build-data/* $(VOLUMEFULLNAME)/bin/
 	chmod 0777 $(VOLUMEFULLNAME)/bin/*
 	@echo "==>kafka-cluster.$(CLUSTERTYPE),up services: start all containers..."; 
 	$(DOCKCOMPCMD) -p $(PROJECTNAME) up -d --no-recreate; 

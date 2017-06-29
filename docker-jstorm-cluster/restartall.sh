@@ -52,7 +52,7 @@ start()
   cd -
 }
 
-echo REVOBJ=$REVOBJ
+echo REVOBJ=$REVOBJ deal_obj=$*
 
 #stop with revobj
 i=${#OBJ[@]}

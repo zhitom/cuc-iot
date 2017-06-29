@@ -33,6 +33,7 @@ then
     export JSTORM_CONF_DIR=$JSTORM_HOME/conf
 fi
 echo "JSTORM_CONF_DIR =" $JSTORM_CONF_DIR
+echo "JSTORM_CONF_FILE =" $JSTORM_CONF_DIR/storm.yaml
 
 if [ "x$JSTORM_LOG_DIR" = "x" ]
 then
@@ -42,7 +43,8 @@ then
 fi
 mkdir -p ${JSTORM_LOG_DIR} 1>/dev/null 2>/dev/null
 echo "JSTORM_LOG_DIR =" $JSTORM_LOG_DIR
-
+export JSTORM_LOG_FILE=$JSTORM_LOG_DIR/jstorm-server.log
+echo "JSTORM_LOG_FILE =" $JSTORM_LOG_FILE
 
 export PATH=$JAVA_HOME/bin:$JSTORM_HOME/bin:$PATH
 
@@ -62,9 +64,10 @@ function startJStorm()
 	PROCESS=$1
   echo "start $PROCESS ..."
   cd $JSTORM_HOME/bin; 
-  cp -f /dev/null ${JSTORM_LOG_DIR}/jstorm-server.log 1>/dev/null 2>/dev/null
+  cp -f /dev/null ${JSTORM_LOG_FILE} 1>/dev/null 2>/dev/null
   #nohup $JSTORM_HOME/bin/jstorm $PROCESS >/dev/null 2>&1 &
-  $JSTORM_HOME/bin/jstorm $PROCESS 1>>${JSTORM_LOG_DIR}/jstorm-server.log  2>>${JSTORM_LOG_DIR}/jstorm-server.log 
+  nohup $JSTORM_HOME/bin/jstorm $PROCESS 1>>${JSTORM_LOG_FILE} 2>>${JSTORM_LOG_FILE} &
+  tail -f ${JSTORM_LOG_FILE}
 	#sleep 4
 	#rm -rf nohup
 	#ps -ef|grep $2

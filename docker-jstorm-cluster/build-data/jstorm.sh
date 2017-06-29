@@ -44,6 +44,14 @@ if [ "x${CMD}" = "xstart" ]; then
     istrace=0
 fi
 
+#处理目录
+if [ ! -f ${STORMYAML_storm_local_dir} ]; then
+    mkdir -p ${STORMYAML_storm_local_dir}
+fi
+if [ ! -f ${STORMYAML_STORM_LOCAL_DIR} ]; then
+    mkdir -p ${STORMYAML_STORM_LOCAL_DIR}
+fi
+
 logonoff()
 {
     if [ $1 -eq 1 ]; then
@@ -59,6 +67,18 @@ logonoff()
     fi
 }
 
+killJStorm()
+{
+    ps -ef|grep $1|grep -v grep |awk '{print $2}' |xargs kill 2>/dev/null
+    if [ $? -ne 0 ]; then
+        ps -ef|grep $1
+        return;
+    fi
+    sleep 3
+    ps -ef|grep $1
+    echo "kill "$1
+}
+
 if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
     echo "usage: $0 {CLUSTERTYPE} {start|stop|info|bash|log} [args]"
     echo "start       start jstorm-server"
@@ -69,58 +89,8 @@ if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
     echo "CLUSTERTYPE:`GetAllClusterType`"
     exit 0
 elif [ "x${CMD}" = "xinfo" ]; then
-    #$JSTORM_HOME/bin/jstorm-topics.sh --list --zookeeper  $JSTORM_ZOOKEEPER_CONNECT
-    echo "=================================================="
-    echo "jstorm-topics:"
-    echo "==>$JSTORM_HOME/bin/zookeeper-shell.sh  $JSTORM_ZOOKEEPER_CONNECT ls /brokers/topics"
-    $JSTORM_HOME/bin/zookeeper-shell.sh  $JSTORM_ZOOKEEPER_CONNECT ls /brokers/topics
-    echo "==>$JSTORM_HOME/bin/jstorm-topics.sh --list --zookeeper $JSTORM_ZOOKEEPER_CONNECT"
-    TOPICLIST=$(eval "$JSTORM_HOME/bin/jstorm-topics.sh --list --zookeeper $JSTORM_ZOOKEEPER_CONNECT|grep -v ^__")
-    echo TOPICLIST="${TOPICLIST}"
-    for topic in ${TOPICLIST}
-    do
-        echo "--------------------------------------------"
-        echo "TOPIC [${topic}] Detail:"
-        echo "--------------------------------------------"
-        echo "==>jstorm-topics.sh --zookeeper $JSTORM_ZOOKEEPER_CONNECT --describe --topic ${topic}"
-        jstorm-topics.sh --zookeeper $JSTORM_ZOOKEEPER_CONNECT --describe --topic ${topic}
-    done
-    echo "=================================================="
-    echo "jstorm-brokers:"
-    if [[ -z "$JSTORM_ADVERTISED_HOST_NAME" && -n "$HOSTNAME_COMMAND" ]]; then
-        export JSTORM_ADVERTISED_HOST_NAME=$(eval $HOSTNAME_COMMAND)
-    fi
-
-    if [[ -z "$JSTORM_HOST_NAME" ]]; then
-        export JSTORM_HOST_NAME=${JSTORM_ADVERTISED_HOST_NAME}
-    fi
-
-    if [[ -z "$JSTORM_ADVERTISED_HOST_NAME" ]]; then
-        #export JSTORM_ADVERTISED_HOST_NAME=$(eval "ifconfig eth0|grep -w -i 'inet addr'|awk -F: '{print \$2}'|awk '{print \$1}'")
-        export JSTORM_ADVERTISED_HOST_NAME=$(eval "hostname")
-    fi
-
-    if [[ -z "$JSTORM_ADVERTISED_LISTENERS" ]]; then
-        export JSTORM_ADVERTISED_LISTENERS="PLAINTEXT://${JSTORM_ADVERTISED_HOST_NAME}:${JSTORM_ADVERTISED_PORT}"
-        unset JSTORM_ADVERTISED_HOST_NAME
-        unset JSTORM_ADVERTISED_PORT
-    fi
-    echo "jstorm-brokers-advertise_ip:port=${JSTORM_ADVERTISED_LISTENERS}"
-    echo "jstorm-brokers-localhost_ip:port=PLAINTEXT://0.0.0.0:${JSTORM_PORT}"
-    echo "jstorm-brokers-id==> $JSTORM_HOME/bin/zookeeper-shell.sh  $JSTORM_ZOOKEEPER_CONNECT ls /brokers/ids"
-    
-    BROKERLIST=$(eval "$JSTORM_HOME/bin/zookeeper-shell.sh  $JSTORM_ZOOKEEPER_CONNECT ls /brokers/ids|sed -n '/WatchedEvent state:/{n;p}'|awk '{print substr(\$0,2,length(\$0)-2)}'|tr ',' ' '")
-    echo BROKERLIST="${BROKERLIST}"
-    for broker in ${BROKERLIST}
-    do
-        echo "--------------------------------------------"
-        echo "BROKER [${broker}] Detail:"
-        echo "--------------------------------------------"
-        echo "==>$JSTORM_HOME/bin/zookeeper-shell.sh  $JSTORM_ZOOKEEPER_CONNECT ls /brokers/ids/${broker}"
-        $JSTORM_HOME/bin/zookeeper-shell.sh  $JSTORM_ZOOKEEPER_CONNECT ls /brokers/ids/${broker}
-    done
-    LOGFILE="${CLUSTERVOLUME}/`hostname`/log/server.log*"
-    echo "jstorm-brokers-log==>`grep -w 'Registered broker' ${LOGFILE}`"
+    echo "Unsupported Now!"
+    exit 0
 elif [ "x${CMD}" = "xstart" ]; then
     #nimbus.host和nimbus.host.start.supervisor为个性化配置，取消不使用，仅起停脚本使用
     logonoff $istrace
@@ -161,7 +131,10 @@ elif [ "x${CMD}" = "xstart" ]; then
     cd ${CLUSTERVOLUME}/bin&&./start.sh "$@"
     #exec "$@"
 elif [ "x${CMD}" = "xstop" ]; then
-    $JSTORM_HOME/bin/stop.sh
+    #$JSTORM_HOME/bin/stop.sh
+    killJStorm "Supervisor"
+    killJStorm "NimbusServer"
+    echo "Successfully stop jstorm"
     exit 0
 elif [ "x${CMD}" = "xbash" ]; then
     tail -f /etc/timezone

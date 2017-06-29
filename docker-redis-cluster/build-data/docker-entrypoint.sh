@@ -2,7 +2,10 @@
 #set -x
 . `dirname $0`/common.sh
 
-CLUSTERTYPE="$1";shift
+CLUSTERTYPE="$1"
+if [ "x$1" != "x" ]; then
+    shift
+fi
 CheckClusterType "${CLUSTERTYPE}"
 
 if [ $? -ne 0 ]; then
