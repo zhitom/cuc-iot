@@ -24,7 +24,7 @@ RUN ln -s ~/.profile ~/.bash_profile
 
 #第3方软件
 RUN apt-get update && \
-    apt-get install -y vim net-tools iputils-ping
+    apt-get install -y vim net-tools iputils-ping tcpdump iptables nmon
 
 #安装：java unzip wget python jstorm
 RUN apt-get update && \
