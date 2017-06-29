@@ -24,7 +24,7 @@ RUN ln -s ~/.profile ~/.bash_profile
 
 #第3方软件
 RUN apt-get update && \
-    apt-get install -y vim net-tools iputils-ping tcpdump iptables nmon
+    apt-get install -y vim net-tools iputils-ping tcpdump iptables nmon curl sudo
 
 #安装：java unzip wget python jstorm
 RUN apt-get update && \
@@ -42,7 +42,8 @@ RUN apt-get update && \
 WORKDIR $JSTORM_HOME
 
 # USER $JSTORM_USER
-ADD build-data/jstorm.sh /
+COPY build-data/jstorm.sh /jstorm_entrypoint.sh
 ADD build-data/common.sh /
+RUN chmod 777 /*.sh
 
-ENTRYPOINT ["/jstorm.sh"]
+ENTRYPOINT ["/jstorm_entrypoint.sh","bash"]

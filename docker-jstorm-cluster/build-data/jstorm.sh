@@ -1,8 +1,11 @@
 #!/bin/sh
-set -x
+#set -x
 . `dirname $0`/common.sh
 
-CLUSTERTYPE="$1";shift
+CLUSTERTYPE="$1"
+if [ "x$1" != "x" ]; then
+    shift
+fi
 CMD="$1";
 CMDOPT="$2";
 
@@ -44,20 +47,20 @@ fi
 logonoff()
 {
     if [ $1 -eq 1 ]; then
-        sed 's/INFO/TRACE/g' $JSTORM_HOME/conf/log4j.properties > $JSTORM_HOME/conf/log4j.properties.1
-        mv $JSTORM_HOME/conf/log4j.properties.1 $JSTORM_HOME/conf/log4j.properties
-        sed 's/INFO/TRACE/g' $JSTORM_HOME/conf/tools-log4j.properties > $JSTORM_HOME/conf/tools-log4j.properties.1
-        mv $JSTORM_HOME/conf/tools-log4j.properties.1 $JSTORM_HOME/conf/tools-log4j.properties
+        sed 's/INFO/TRACE/g' $JSTORM_HOME/conf/jstorm.log4j.properties > $JSTORM_HOME/conf/jstorm.log4j.properties.1
+        mv $JSTORM_HOME/conf/jstorm.log4j.properties.1 $JSTORM_HOME/conf/jstorm.log4j.properties
+        sed 's/INFO/TRACE/g' $JSTORM_HOME/conf/client_log4j.properties > $JSTORM_HOME/conf/client_log4j.properties.1
+        mv $JSTORM_HOME/conf/client_log4j.properties.1 $JSTORM_HOME/conf/client_log4j.properties
     else
-        sed 's/TRACE/INFO/g' $JSTORM_HOME/conf/log4j.properties > $JSTORM_HOME/conf/log4j.properties.1
-        mv $JSTORM_HOME/conf/log4j.properties.1 $JSTORM_HOME/conf/log4j.properties
-        sed 's/TRACE/INFO/g' $JSTORM_HOME/conf/tools-log4j.properties > $JSTORM_HOME/conf/tools-log4j.properties.1
-        mv $JSTORM_HOME/conf/tools-log4j.properties.1 $JSTORM_HOME/conf/tools-log4j.properties
+        sed 's/TRACE/INFO/g' $JSTORM_HOME/conf/jstorm.log4j.properties > $JSTORM_HOME/conf/jstorm.log4j.properties.1
+        mv $JSTORM_HOME/conf/jstorm.log4j.properties.1 $JSTORM_HOME/conf/jstorm.log4j.properties
+        sed 's/TRACE/INFO/g' $JSTORM_HOME/conf/client_log4j.properties > $JSTORM_HOME/conf/client_log4j.properties.1
+        mv $JSTORM_HOME/conf/client_log4j.properties.1 $JSTORM_HOME/conf/client_log4j.properties
     fi
 }
 
-if [ -o "x${CMD}" = "xhelp" ]; then
-    echo "need one param!"
+if [ "x${CMD}" = "x" -o "x${CMD}" = "xhelp" ]; then
+    echo "usage: $0 {CLUSTERTYPE} {start|stop|info|bash|log} [args]"
     echo "start       start jstorm-server"
     echo "stop        stop jstorm-server"
     echo "info        list infomations"
@@ -121,24 +124,40 @@ elif [ "x${CMD}" = "xinfo" ]; then
 elif [ "x${CMD}" = "xstart" ]; then
     #nimbus.host和nimbus.host.start.supervisor为个性化配置，取消不使用，仅起停脚本使用
     logonoff $istrace
+    #will be moved to $JSTORM_CONF_DIR/
     CONFIG="$JSTORM_HOME/conf/storm.yaml"
+    if [ ! -f $CONFIG ]; then
+        cp /dev/null $CONFIG
+    fi
+    if [ "x$JSTORM_CONF_DIR" = "x" ]
+    then
+        export JSTORM_CONF_DIR=$JSTORM_HOME/conf
+    fi
+    cp -f $CONFIG ${JSTORM_CONF_DIR}/ 1>/dev/null 2>/dev/null
+    CONFIG="${JSTORM_CONF_DIR}/storm.yaml"
     for VAR in `env`
     do
-      echo "ENV_VAR:$VAR=${!env_var}"
-      if [[ $VAR =~ ^JSTORM_HOME || $VAR =~ ^JSTORM_CLUSTER ]]; then
+      ismatch=`echo $VAR|awk '{if(match($0,"STORMYAML_")==0)print $0;}'`
+      if [ "x$ismatch" != "x" ]; then
         continue;
       fi
-      if [[ $VAR =~ ^JSTORM_ ]]; then
-        jstorm_name=`echo "$VAR" | sed -r "s/JSTORM_(.*)=.*/\1/g" | tr '[:upper:]' '[:lower:]' | tr _ .`
-        env_var=`echo "$VAR" | sed -r "s/(.*)=.*/\1/g"`
-        if egrep -q "(^|^#)$jstorm_name=" $CONFIG; then
-            sed -r -i "s@(^|^#)($jstorm_name)=(.*)@\2=${!env_var}@g" $CONFIG #note that no config values may contain an '@' char
-        else
-            echo "$jstorm_name=${!env_var}" >> $CONFIG
-        fi
+      echo "ENV_VAR:$VAR"
+      jstorm_name=`echo "$VAR" | sed -r "s/STORMYAML_(.*)=.*/\1/g" | tr '[:upper:]' '[:lower:]' | tr _ .`
+      env_var=`echo "$VAR" | sed -r "s/(.*)=.*/\1/g"`
+      env_val=$(eval "echo \$$env_var")
+      if egrep -q "(^|^#)$jstorm_name=" $CONFIG; then
+        echo "MODIFY storm.yaml==>$jstorm_name:${env_val}"
+        sed -r -i "s@(^|^#)($jstorm_name):(.*)@\2:${env_val}@g" $CONFIG #note that no config values may contain an '@' char
+      else
+        echo "ADD INTO storm.yaml==>$jstorm_name:${env_val}"
+        echo "$jstorm_name: ${env_val}" >> $CONFIG
       fi
     done
     shift
+    echo "============================================"
+    cat $CONFIG
+    echo "============================================"
+    echo "==>start jstorm ..."
     cd ${CLUSTERVOLUME}/bin&&./start.sh "$@"
     #exec "$@"
 elif [ "x${CMD}" = "xstop" ]; then
@@ -148,8 +167,6 @@ elif [ "x${CMD}" = "xbash" ]; then
     tail -f /etc/timezone
 elif [ "x${CMD}" = "xlog" ]; then
     logonoff $istrace
-elif [ "x${CMD}" = "x" ]; then
-    tail -f /etc/timezone
 else
     exec $@
 fi
