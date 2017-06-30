@@ -103,7 +103,8 @@ elif [ "x${CMD}" = "xstart" ]; then
     then
         export JSTORM_CONF_DIR=$JSTORM_HOME/conf
     fi
-    cp -f $CONFIG ${JSTORM_CONF_DIR}/ 1>/dev/null 2>/dev/null
+    mkdir -p $JSTORM_CONF_DIR
+    cp -f $JSTORM_HOME/conf/* ${JSTORM_CONF_DIR}/ 1>/dev/null 2>/dev/null
     CONFIG="${JSTORM_CONF_DIR}/storm.yaml"
     for VAR in `env`
     do
@@ -123,6 +124,7 @@ elif [ "x${CMD}" = "xstart" ]; then
         echo "$jstorm_name: ${env_val}" >> $CONFIG
       fi
     done
+    cp -f ${JSTORM_CONF_DIR}/storm.yaml $JSTORM_HOME/conf/storm.yaml
     shift
     if [ "x$1" = "xnimbus" ]; then
         echo "=================start jstorm-web-ui in numbus server======================="

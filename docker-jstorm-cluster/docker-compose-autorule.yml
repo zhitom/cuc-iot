@@ -4,18 +4,23 @@ services:
     jstormcluster-autorule-1:
         image: zhitom/docker-jstorm-cluster:latest
         hostname: jstormcluster-autorule-1
+        ports:
+          - "8080:8080"
         environment:
           JSTORM_CLUSTER: /jstorm-cluster/autorule
-          JSTORM_CONF_DIR: /jstorm-cluster/autorule/jstormcluster-autorule-1/data
+          JSTORM_CONF_DIR: /jstorm-cluster/autorule/jstormcluster-autorule-1/data/conf
           JSTORM_LOG_DIR: /jstorm-cluster/autorule/jstormcluster-autorule-1/log
           #下面STORMYAML打头的环境变量会覆盖到集群配置文件里边，注意value的格式需符合yaml语法，并用引号引起来
           #所以产生的storm.yaml都是单行配置
+          STORMYAML_cluster_name: 'jstormcluster-autorule'
+          STORMYAML_topology_performance_metrics: 'true'
+          STORMYAML_topology_alimonitor_metrics_post: 'false'
           STORMYAML_storm_zookeeper_servers: '[pautorule_zkcluster-autorule-1_1]'
           STORMYAML_storm_zookeeper_port: 12015
           STORMYAML_storm_local_dir: /jstorm-cluster/autorule/jstormcluster-autorule-1/data
           STORMYAML_jstorm_log_dir: /jstorm-cluster/autorule/jstormcluster-autorule-1/log
           STORMYAML_supervisor_slots_ports: '[30200,30201,30202]'
-          STORMYAML_nimbus_seeds: '[jstormcluster-autorule-1]'
+          #STORMYAML_nimbus_seeds: '[jstormcluster-autorule-1]'
           STORMYAML_worker_childopts: "-Xms512M -Xmx512M -Xmn256m -XX:PermSize=96m  -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=100M -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000"
           STORMYAML_process_launcher_childopts: " -Xms256m -Xmx256m  "
           STORMYAML_pacemaker_childopts: "-Xmx256m"
@@ -44,16 +49,19 @@ services:
           - "30200-30202:30200-30202"
         environment:
           JSTORM_CLUSTER: /jstorm-cluster/autorule
-          JSTORM_CONF_DIR: /jstorm-cluster/autorule/jstormcluster-autorule-2/data
+          JSTORM_CONF_DIR: /jstorm-cluster/autorule/jstormcluster-autorule-2/data/conf
           JSTORM_LOG_DIR: /jstorm-cluster/autorule/jstormcluster-autorule-2/log
           #下面STORMYAML打头的环境变量会覆盖到集群配置文件里边，注意value的格式需符合yaml语法，并用引号引起来
           #所以产生的storm.yaml都是单行配置
+          STORMYAML_cluster_name: 'jstormcluster-autorule'
+          STORMYAML_topology_performance_metrics: 'true'
+          STORMYAML_topology_alimonitor_metrics_post: 'false'
           STORMYAML_storm_zookeeper_servers: '[pautorule_zkcluster-autorule-1_1]'
           STORMYAML_storm_zookeeper_port: 12015
           STORMYAML_storm_local_dir: /jstorm-cluster/autorule/jstormcluster-autorule-2/data
           STORMYAML_jstorm_log_dir: /jstorm-cluster/autorule/jstormcluster-autorule-2/log
           STORMYAML_supervisor_slots_ports: '[30200,30201,30202]'
-          STORMYAML_nimbus_seeds: '[jstormcluster-autorule-1]'
+          #STORMYAML_nimbus_seeds: '[jstormcluster-autorule-1]'
           STORMYAML_worker_childopts: "-Xms512M -Xmx512M -Xmn256m -XX:PermSize=96m  -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=100M -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000"
           STORMYAML_process_launcher_childopts: " -Xms256m -Xmx256m  "
           STORMYAML_pacemaker_childopts: "-Xmx256m"

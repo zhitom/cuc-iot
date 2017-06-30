@@ -43,7 +43,11 @@ then
 fi
 mkdir -p ${JSTORM_LOG_DIR} 1>/dev/null 2>/dev/null
 echo "JSTORM_LOG_DIR =" $JSTORM_LOG_DIR
-export JSTORM_LOG_FILE=$JSTORM_LOG_DIR/jstorm-server.log
+if [ "X${1}" = "X" ]; then
+    export JSTORM_LOG_FILE=$JSTORM_LOG_DIR/jstorm-server.log
+else
+    export JSTORM_LOG_FILE=$JSTORM_LOG_DIR/jstorm-server-"$1".log
+fi
 echo "JSTORM_LOG_FILE =" $JSTORM_LOG_FILE
 
 export PATH=$JAVA_HOME/bin:$JSTORM_HOME/bin:$PATH

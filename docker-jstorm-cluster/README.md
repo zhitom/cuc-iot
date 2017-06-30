@@ -77,6 +77,24 @@ make的个性化选项：
 
 # 操作方法
 
+##极简操作
+
+To help
+
+    restartall.sh
+
+To start
+    
+    restartall.sh start f2m zk jstorm
+
+To stop
+    
+    restartall.sh stop f2m zk jstorm
+
+To stop and start
+    
+    restartall.sh all f2m zk jstorm
+ 
 ##镜像准备和启动
 
 To build your own image run,Normally run once!
