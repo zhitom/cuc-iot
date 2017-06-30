@@ -2,9 +2,9 @@
 
 . ./build-data/common.sh
 
-OBJ=(zk jstorm)
-DIR=(../docker-zookeeper-cluster .)
-VOL=(zookeeper-cluster-volume jstorm-cluster-volume)
+OBJ=(zk)
+DIR=(.)
+VOL=(zookeeper-cluster-volume)
 REVOBJ=$(eval "echo ${OBJ[@]}|awk '{for(i=NF;i>0;i--)print \$i;}'")
 RESTARTTYPE="$1";
 if [ "x$1" != "x" ]; then

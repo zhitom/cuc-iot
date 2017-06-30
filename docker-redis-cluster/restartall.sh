@@ -2,9 +2,9 @@
 
 . ./build-data/common.sh
 
-OBJ=(zk jstorm)
-DIR=(../docker-zookeeper-cluster .)
-VOL=(zookeeper-cluster-volume jstorm-cluster-volume)
+OBJ=(redis)
+DIR=(.)
+VOL=(redis-cluster-volume)
 REVOBJ=$(eval "echo ${OBJ[@]}|awk '{for(i=NF;i>0;i--)print \$i;}'")
 RESTARTTYPE="$1";
 if [ "x$1" != "x" ]; then
@@ -43,8 +43,7 @@ stop()
 {
   echo "$1==>stop from $2 ..."
   cd $2/
-# docker-compose don't need stop
-#  make CLUSTERTYPE=$CLUSTERTYPE stop
+  make CLUSTERTYPE=$CLUSTERTYPE stop
   make CLUSTERTYPE=$CLUSTERTYPE clean
   make CLUSTERTYPE=$CLUSTERTYPE NOCONFIRM=y cleandata cleanlog
   find $3/
@@ -59,7 +58,7 @@ start()
   cd -
 }
 
-echo REVOBJ=$REVOBJ deal_obj=$*
+echo REVOBJ=$REVOBJ
 
 #stop with revobj
 if [ "x$RESTARTTYPE" != "xstart" ]; then
@@ -75,7 +74,6 @@ do
     done
     let i=$i-1
 done
-fi
 
 #start with obj
 if [ "x$RESTARTTYPE" != "xstop" ]; then

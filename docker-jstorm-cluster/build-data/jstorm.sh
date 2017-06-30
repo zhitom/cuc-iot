@@ -124,6 +124,16 @@ elif [ "x${CMD}" = "xstart" ]; then
       fi
     done
     shift
+    if [ "x$1" = "xnimbus" ]; then
+        echo "=================start jstorm-web-ui in numbus server======================="
+        cp -f $CONFIG ~/.jstorm 1>/dev/null 2>/dev/null
+        mv /var/lib/tomcat8/webapps/ROOT /var/lib/tomcat8/webapps/ROOT.old
+        mkdir -p /var/lib/tomcat8/webapps/jstorm-ui-${JSTORM_VERSION}
+        cd /var/lib/tomcat8/webapps/&&ln -sf jstorm-ui-${JSTORM_VERSION} ROOT
+        cd /var/lib/tomcat8/webapps/jstorm-ui-${JSTORM_VERSION}&& unzip ${JSTORM_HOME}/jstorm-ui-${JSTORM_VERSION}.war
+        cd /usr/share/tomcat8/bin/&&./startup.sh
+        echo "==> http://`hostname`:8080"
+    fi
     echo "============================================"
     cat $CONFIG
     echo "============================================"

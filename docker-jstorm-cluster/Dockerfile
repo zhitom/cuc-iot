@@ -24,7 +24,7 @@ RUN ln -s ~/.profile ~/.bash_profile
 
 #第3方软件
 RUN apt-get update && \
-    apt-get install -y vim net-tools iputils-ping tcpdump iptables nmon curl sudo
+    apt-get install -y vim net-tools iputils-ping tcpdump iptables nmon curl sudo tomcat8
 
 #安装：java unzip wget python jstorm
 RUN apt-get update && \
@@ -38,6 +38,13 @@ RUN apt-get update && \
     chmod +x "$JSTORM_HOME/bin/jstorm" && \
     rm "$JSTORM_INSTALL_PATH/$JSTORM_FILE"
 
+#tomcat
+RUN ln -s /var/lib/tomcat8/logs /usr/share/tomcat8/logs
+RUN ln -s /var/lib/tomcat8/conf /usr/share/tomcat8/conf
+RUN ln -s /var/lib/tomcat8/webapps /usr/share/tomcat8/webapps
+RUN ln -s /var/lib/tomcat8/work /usr/share/tomcat8/work
+RUN rm -rf /var/lib/tomcat8/lib
+RUN ln -s /usr/share/tomcat8/lib /var/lib/tomcat8/lib
 
 WORKDIR $JSTORM_HOME
 

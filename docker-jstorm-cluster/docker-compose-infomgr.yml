@@ -1,21 +1,21 @@
 version: '3'
 services:
     #nimbus主机始终需要排在最前面
-    jstormcluster-offline-1:
+    jstormcluster-infomgr-1:
         image: zhitom/docker-jstorm-cluster:latest
-        hostname: jstormcluster-offline-1
+        hostname: jstormcluster-infomgr-1
         environment:
-          JSTORM_CLUSTER: /jstorm-cluster/offline
-          JSTORM_CONF_DIR: /jstorm-cluster/offline/jstormcluster-offline-1/data
-          JSTORM_LOG_DIR: /jstorm-cluster/offline/jstormcluster-offline-1/log
+          JSTORM_CLUSTER: /jstorm-cluster/infomgr
+          JSTORM_CONF_DIR: /jstorm-cluster/infomgr/jstormcluster-infomgr-1/data
+          JSTORM_LOG_DIR: /jstorm-cluster/infomgr/jstormcluster-infomgr-1/log
           #下面STORMYAML打头的环境变量会覆盖到集群配置文件里边，注意value的格式需符合yaml语法，并用引号引起来
           #所以产生的storm.yaml都是单行配置
-          STORMYAML_storm_zookeeper_servers: '[poffline_zkcluster-offline-1_1]'
-          STORMYAML_storm_zookeeper_port: 12009
-          STORMYAML_storm_local_dir: /jstorm-cluster/offline/jstormcluster-offline-1/data
-          STORMYAML_jstorm_log_dir: /jstorm-cluster/offline/jstormcluster-offline-1/log
-          STORMYAML_supervisor_slots_ports: '[30000,30001,30002]'
-          STORMYAML_nimbus_seeds: '[jstormcluster-offline-1]'
+          STORMYAML_storm_zookeeper_servers: '[pinfomgr_zkcluster-infomgr-1_1]'
+          STORMYAML_storm_zookeeper_port: 12018
+          STORMYAML_storm_local_dir: /jstorm-cluster/infomgr/jstormcluster-infomgr-1/data
+          STORMYAML_jstorm_log_dir: /jstorm-cluster/infomgr/jstormcluster-infomgr-1/log
+          STORMYAML_supervisor_slots_ports: '[30300,30301,30302]'
+          STORMYAML_nimbus_seeds: '[jstormcluster-infomgr-1]'
           STORMYAML_worker_childopts: "-Xms512M -Xmx512M -Xmn256m -XX:PermSize=96m  -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=100M -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000"
           STORMYAML_process_launcher_childopts: " -Xms256m -Xmx256m  "
           STORMYAML_pacemaker_childopts: "-Xmx256m"
@@ -25,35 +25,35 @@ services:
           STORMYAML_ui_childopts: " -Xms512m -Xmx512m -Xmn256m -XX:PermSize=96m -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError  -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000 "
           STORMYAML_nimbus_childopts: " -Xms512m -Xmx512m -Xmn256m -XX:PermSize=96m  -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=100M -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000 "
         volumes:
-            - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
+            - /jstorm-cluster-volume/infomgr/bin:/jstorm-cluster/infomgr/bin
             #因为使用mmap，所以不能使用windows的文件卷，另外storm是无状态进程，可以不考虑持久化问题
-            #- /jstorm-cluster-volume/offline/jstormcluster-offline-1/data:/jstorm-cluster/offline/jstormcluster-offline-1/data
-            - /jstorm-cluster-volume/offline/jstormcluster-offline-1/log:/jstorm-cluster/offline/jstormcluster-offline-1/log
-        entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,nimbus]
-        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,bash]
+            #- /jstorm-cluster-volume/infomgr/jstormcluster-infomgr-1/data:/jstorm-cluster/infomgr/jstormcluster-infomgr-1/data
+            - /jstorm-cluster-volume/infomgr/jstormcluster-infomgr-1/log:/jstorm-cluster/infomgr/jstormcluster-infomgr-1/log
+        entrypoint: [/jstorm-cluster/infomgr/bin/jstorm.sh,infomgr,start,nimbus]
+        #entrypoint: [/jstorm-cluster/infomgr/bin/jstorm.sh,infomgr,bash]
         restart: always
         external_links:
-            - poffline_zkcluster-offline-1_1:zookeeper1
-            - poffline_zkcluster-offline-2_1:zookeeper2
-            - poffline_zkcluster-offline-3_1:zookeeper3
+            - pinfomgr_zkcluster-infomgr-1_1:zookeeper1
+            - pinfomgr_zkcluster-infomgr-2_1:zookeeper2
+            - pinfomgr_zkcluster-infomgr-3_1:zookeeper3
         
-    jstormcluster-offline-2:
+    jstormcluster-infomgr-2:
         image: zhitom/docker-jstorm-cluster:latest
-        hostname: jstormcluster-offline-2
+        hostname: jstormcluster-infomgr-2
         ports:
-          - "30000-30002:30000-30002"
+          - "30300-30302:30300-30302"
         environment:
-          JSTORM_CLUSTER: /jstorm-cluster/offline
-          JSTORM_CONF_DIR: /jstorm-cluster/offline/jstormcluster-offline-2/data
-          JSTORM_LOG_DIR: /jstorm-cluster/offline/jstormcluster-offline-2/log
+          JSTORM_CLUSTER: /jstorm-cluster/infomgr
+          JSTORM_CONF_DIR: /jstorm-cluster/infomgr/jstormcluster-infomgr-2/data
+          JSTORM_LOG_DIR: /jstorm-cluster/infomgr/jstormcluster-infomgr-2/log
           #下面STORMYAML打头的环境变量会覆盖到集群配置文件里边，注意value的格式需符合yaml语法，并用引号引起来
           #所以产生的storm.yaml都是单行配置
-          STORMYAML_storm_zookeeper_servers: '[poffline_zkcluster-offline-1_1]'
-          STORMYAML_storm_zookeeper_port: 12009
-          STORMYAML_storm_local_dir: /jstorm-cluster/offline/jstormcluster-offline-2/data
-          STORMYAML_jstorm_log_dir: /jstorm-cluster/offline/jstormcluster-offline-2/log
-          STORMYAML_supervisor_slots_ports: '[30000,30001,30002]'
-          STORMYAML_nimbus_seeds: '[jstormcluster-offline-1]'
+          STORMYAML_storm_zookeeper_servers: '[pinfomgr_zkcluster-infomgr-1_1]'
+          STORMYAML_storm_zookeeper_port: 12018
+          STORMYAML_storm_local_dir: /jstorm-cluster/infomgr/jstormcluster-infomgr-2/data
+          STORMYAML_jstorm_log_dir: /jstorm-cluster/infomgr/jstormcluster-infomgr-2/log
+          STORMYAML_supervisor_slots_ports: '[30300,30301,30302]'
+          STORMYAML_nimbus_seeds: '[jstormcluster-infomgr-1]'
           STORMYAML_worker_childopts: "-Xms512M -Xmx512M -Xmn256m -XX:PermSize=96m  -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=100M -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000"
           STORMYAML_process_launcher_childopts: " -Xms256m -Xmx256m  "
           STORMYAML_pacemaker_childopts: "-Xmx256m"
@@ -64,19 +64,19 @@ services:
           STORMYAML_ui_childopts: " -Xms512m -Xmx512m -Xmn256m -XX:PermSize=96m -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError  -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000 "
           STORMYAML_nimbus_childopts: " -Xms512m -Xmx512m -Xmn256m -XX:PermSize=96m  -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC  -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSFullGCsBeforeCompaction=5 -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=100M -XX:+UseCMSCompactAtFullCollection -XX:CMSMaxAbortablePrecleanTime=5000 "
         volumes:
-            - /jstorm-cluster-volume/offline/bin:/jstorm-cluster/offline/bin
-            #- /jstorm-cluster-volume/offline/jstormcluster-offline-2/data:/jstorm-cluster/offline/jstormcluster-offline-2/data
-            - /jstorm-cluster-volume/offline/jstormcluster-offline-2/log:/jstorm-cluster/offline/jstormcluster-offline-2/log
-        entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,start,supervisor]
-        #entrypoint: [/jstorm-cluster/offline/bin/jstorm.sh,offline,bash]
+            - /jstorm-cluster-volume/infomgr/bin:/jstorm-cluster/infomgr/bin
+            #- /jstorm-cluster-volume/infomgr/jstormcluster-infomgr-2/data:/jstorm-cluster/infomgr/jstormcluster-infomgr-2/data
+            - /jstorm-cluster-volume/infomgr/jstormcluster-infomgr-2/log:/jstorm-cluster/infomgr/jstormcluster-infomgr-2/log
+        entrypoint: [/jstorm-cluster/infomgr/bin/jstorm.sh,infomgr,start,supervisor]
+        #entrypoint: [/jstorm-cluster/infomgr/bin/jstorm.sh,infomgr,bash]
         restart: always
         depends_on:
-            - jstormcluster-offline-1
+            - jstormcluster-infomgr-1
         links:
-            - jstormcluster-offline-1
+            - jstormcluster-infomgr-1
         external_links:
-            - poffline_zkcluster-offline-1_1:zookeeper1
-            - poffline_zkcluster-offline-2_1:zookeeper2
-            - poffline_zkcluster-offline-3_1:zookeeper3
+            - pinfomgr_zkcluster-infomgr-1_1:zookeeper1
+            - pinfomgr_zkcluster-infomgr-2_1:zookeeper2
+            - pinfomgr_zkcluster-infomgr-3_1:zookeeper3
     
 

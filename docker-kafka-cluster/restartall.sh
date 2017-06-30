@@ -6,12 +6,19 @@ OBJ=(zk kafka)
 DIR=(../docker-zookeeper-cluster .)
 VOL=(zookeeper-cluster-volume kafka-cluster-volume)
 REVOBJ=$(eval "echo ${OBJ[@]}|awk '{for(i=NF;i>0;i--)print \$i;}'")
-CLUSTERTYPE="$1";shift;
+RESTARTTYPE="$1";
+if [ "x$1" != "x" ]; then
+    shift
+fi
+CLUSTERTYPE="$1";
+if [ "x$1" != "x" ]; then
+    shift
+fi
 
 CheckClusterType $CLUSTERTYPE
 
 if [ "x$1" = "x" ]; then
-   echo Usage: $0 {`GetAllClusterType`} [${OBJ[@]}]
+   echo Usage: $0 "{all|start|stop}" {`GetAllClusterType`} [${OBJ[@]}]
    exit 10
 else
    for inobj in $*
@@ -55,6 +62,7 @@ start()
 echo REVOBJ=$REVOBJ
 
 #stop with revobj
+if [ "x$RESTARTTYPE" != "xstart" ]; then
 i=${#OBJ[@]}
 let i=$i-1
 for obj in $REVOBJ
@@ -69,6 +77,7 @@ do
 done
 
 #start with obj
+if [ "x$RESTARTTYPE" != "xstop" ]; then
 i=0
 for obj in ${OBJ[@]}
 do
@@ -80,5 +89,5 @@ do
     done
     let i=$i+1
 done
-
+fi
 
