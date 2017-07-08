@@ -5,7 +5,7 @@
  redis-cluster是在[https://hub.docker.com/r/grokzen/redis-cluster/](https://hub.docker.com/r/grokzen/redis-cluster/)基础之上创建的，默认用于一个基于redis的队列缓存集群，因此此redis集群仅考虑1个redis副本且关闭redis持久化功能。
 
 - container deploys redis 6 instances=3M+3S!(实例，6个实例，3主+3备)。
-- 目前预先配置7个mdb+1个mq集群: mq devinfo session rating ratingcdr dupcheck  autorule acct
+- 目前预先配置7个mdb+1个mq集群: mq devinfo session rating ratingcdr dupcheck  autorule param
 - REDIS_HOME为redis开源软件的HOME目录，指向/redis/src
 
 
@@ -91,7 +91,7 @@
 
 make的个性化选项：
 
-    - CLUSTERTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule acct
+    - CLUSTERTYPE=mq(默认) devinfo session rating ratingcdr dupcheck autorule param
     - RUNOPT=--net=host(默认) 该选择主要方便容器和宿主机双向通信，因为redis客户端集群场景下会切换ip，否则只能在容器里边使用客户端了。
 
 # 操作方法
